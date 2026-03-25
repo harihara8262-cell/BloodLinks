@@ -1,0 +1,57 @@
+# BloodConnect Docker Compose Configuration
+
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7.0
+    container_name: bloodconnect-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: bloodconnect
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - bloodconnect-network
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: bloodconnect-backend
+    ports:
+      - "8000:8000"
+    environment:
+      MONGO_URL: mongodb://admin:password@mongodb:27017/bloodconnect?authSource=admin
+      DEBUG: "True"
+    depends_on:
+      - mongodb
+    networks:
+      - bloodconnect-network
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+
+  # Frontend (optional, for production)
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   container_name: bloodconnect-frontend
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - backend
+  #   networks:
+  #     - bloodconnect-network
+
+volumes:
+  mongodb_data:
+    driver: local
+
+networks:
+  bloodconnect-network:
+    driver: bridge
