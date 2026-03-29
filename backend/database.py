@@ -24,13 +24,6 @@ async def connect_to_mongo():
         donors_collection = db["donors"]
         await donors_collection.create_index("blood_group")
         await donors_collection.create_index([("location", "2dsphere")])
-
-        users_collection = db["users"]
-        existing_indexes = await users_collection.index_information()
-        for stale_index in ["google_id_1", "email_1"]:
-            if stale_index in existing_indexes:
-                await users_collection.drop_index(stale_index)
-        await users_collection.create_index("username", unique=True)
         
         print("✓ Connected to MongoDB successfully")
     except Exception as e:
