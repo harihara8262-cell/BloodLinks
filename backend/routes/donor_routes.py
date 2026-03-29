@@ -5,11 +5,42 @@ Donor API routes
 from fastapi import APIRouter, HTTPException, Query
 from bson import ObjectId
 from database import get_donors_collection
-from models.donor import DonorCreate, DonorResponse, SearchQuery, BLOOD_GROUPS
+from models.donor import DonorCreate, DonorResponse, SearchQuery, EmergencyAlertRequest, BLOOD_GROUPS
 from utils.distance import calculate_distance, is_within_radius
+from utils.notifications import send_emergency_sms_to_donors
 from datetime import datetime
 
 router = APIRouter()
+
+
+async def _collect_matching_donors(blood: str, lat: float, lng: float, radius: float):
+    collection = await get_donors_collection()
+    donors = await collection.find({
+        "blood_group": blood,
+        "available": True
+    }).to_list(length=100)
+
+    matches = []
+    for donor in donors:
+        distance = calculate_distance(lat, lng, donor["latitude"], donor["longitude"])
+        if is_within_radius(distance, radius):
+            matches.append(
+                {
+                    "id": str(donor["_id"]),
+                    "name": donor["name"],
+                    "phone": donor["phone"],
+                    "blood_group": donor["blood_group"],
+                    "address": donor["address"],
+                    "city": donor["city"],
+                    "latitude": donor["latitude"],
+                    "longitude": donor["longitude"],
+                    "available": donor["available"],
+                    "distance": distance,
+                }
+            )
+
+    matches.sort(key=lambda x: x["distance"])
+    return matches
 
 @router.post("/register")
 async def register_donor(donor: DonorCreate):
@@ -131,36 +162,9 @@ async def emergency_search(
     radii = [5, 10, 20]  # Progressive radius expansion
     
     for radius in radii:
-        collection = await get_donors_collection()
-        donors = await collection.find({
-            "blood_group": blood,
-            "available": True
-        }).to_list(length=100)
-        
-        results = []
-        for donor in donors:
-            distance = calculate_distance(
-                lat, lng,
-                donor["latitude"], donor["longitude"]
-            )
-            
-            if is_within_radius(distance, radius):
-                donor_data = {
-                    "id": str(donor["_id"]),
-                    "name": donor["name"],
-                    "phone": donor["phone"],
-                    "blood_group": donor["blood_group"],
-                    "address": donor["address"],
-                    "city": donor["city"],
-                    "latitude": donor["latitude"],
-                    "longitude": donor["longitude"],
-                    "available": donor["available"],
-                    "distance": distance
-                }
-                results.append(donor_data)
+        results = await _collect_matching_donors(blood, lat, lng, radius)
         
         if results:
-            results.sort(key=lambda x: x["distance"])
             return {
                 "blood_group": blood,
                 "search_radius": radius,
@@ -174,6 +178,63 @@ async def emergency_search(
         "donors_found": 0,
         "message": "No donors found even in 20km radius",
         "donors": []
+    }
+
+
+@router.post("/emergency-alert")
+async def emergency_alert(payload: EmergencyAlertRequest):
+    """Find nearby donors and send emergency SMS alerts to registered phones."""
+    if payload.blood_group not in BLOOD_GROUPS:
+        raise HTTPException(status_code=400, detail="Invalid blood group")
+
+    if not (-90 <= payload.latitude <= 90) or not (-180 <= payload.longitude <= 180):
+        raise HTTPException(status_code=400, detail="Invalid coordinates")
+
+    radii = [5, 10, 20]
+    selected_radius = 20
+    matched_donors = []
+
+    for radius in radii:
+        results = await _collect_matching_donors(
+            payload.blood_group,
+            payload.latitude,
+            payload.longitude,
+            radius,
+        )
+        if results:
+            matched_donors = results
+            selected_radius = radius
+            break
+
+    if not matched_donors:
+        return {
+            "status": "no-donors",
+            "message": "No donors found even in 20km radius",
+            "blood_group": payload.blood_group,
+            "search_radius": 20,
+            "donors_found": 0,
+            "notifications_sent": 0,
+            "notifications_failed": 0,
+            "donors": [],
+        }
+
+    summary = send_emergency_sms_to_donors(
+        donors=matched_donors,
+        blood_group=payload.blood_group,
+        requester_name=payload.requester_name or "A patient",
+        custom_message=payload.message or "",
+    )
+
+    return {
+        "status": "sent" if summary["sent"] > 0 else "failed",
+        "message": "Emergency alert processed",
+        "blood_group": payload.blood_group,
+        "search_radius": selected_radius,
+        "donors_found": len(matched_donors),
+        "notifications_sent": summary["sent"],
+        "notifications_failed": summary["failed"],
+        "notification_failures": summary["failures"],
+        "donors": matched_donors,
     }
 
 @router.get("/all")

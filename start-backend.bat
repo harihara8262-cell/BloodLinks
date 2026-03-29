@@ -1,7 +1,7 @@
 @echo off
 REM Start BloodConnect Backend
 
-cd /d C:\Users\harih\OneDrive\Attachments\bloodlink\backend
+cd /d "%~dp0backend"
 
 echo.
 echo 🩸 BloodConnect - FastAPI Backend

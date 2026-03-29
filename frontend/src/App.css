@@ -1,4 +1,20 @@
-/* Global Styles for bloodlink */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+/* Global Styles for Bloodlink */
+
+:root {
+  --bg-soft: #f7fbff;
+  --bg-warm: #fff2f2;
+  --bg-cool: #edf7ff;
+  --ink-main: #0f172a;
+  --ink-soft: #475569;
+  --accent-red: #d92d20;
+  --accent-blue: #1d4ed8;
+  --surface: rgba(255, 255, 255, 0.94);
+  --surface-border: rgba(148, 163, 184, 0.28);
+  --shadow-soft: 0 10px 26px rgba(15, 23, 42, 0.1);
+  --shadow-strong: 0 16px 38px rgba(15, 23, 42, 0.16);
+}
 
 * {
   margin: 0;
@@ -7,11 +23,12 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: "Inter", "Segoe UI", "Trebuchet MS", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  color: var(--ink-main);
+  background: linear-gradient(140deg, #f8fbff 0%, #fff5f5 50%, #eef7ff 100%);
 }
 
 code {
@@ -52,4 +69,723 @@ code {
 
 .fade-in {
   animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes heroGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes floatOrb {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -18px, 0) scale(1.06);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shellShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes auroraFlow {
+  0% {
+    transform: translate3d(-6%, -2%, 0) scale(1) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(8%, 4%, 0) scale(1.08) rotate(4deg);
+  }
+  100% {
+    transform: translate3d(-6%, -2%, 0) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes gridDrift {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(140px, 60px, 0);
+  }
+}
+
+@keyframes cardFloat {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotateX(0deg);
+  }
+  50% {
+    transform: translate3d(0, -6px, 0) rotateX(1.4deg);
+  }
+}
+
+@keyframes bloodDropFall {
+  0% {
+    transform: translateY(-22px) scale(0.82);
+    opacity: 0;
+  }
+  22% {
+    opacity: 1;
+  }
+  55% {
+    transform: translateY(2px) scale(1);
+    opacity: 1;
+  }
+  78% {
+    transform: translateY(12px) scale(0.96);
+    opacity: 0.75;
+  }
+  100% {
+    transform: translateY(18px) scale(0.94);
+    opacity: 0;
+  }
+}
+
+@keyframes bloodPulse {
+  0% {
+    transform: scale(0.84);
+    opacity: 0;
+  }
+  28% {
+    opacity: 0;
+  }
+  52% {
+    opacity: 0.34;
+  }
+  100% {
+    transform: scale(1.24);
+    opacity: 0;
+  }
+}
+
+@keyframes authDropTravel {
+  0% {
+    transform: translate3d(0, -4px, 20px) scale(0.84) rotate(-14deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  45% {
+    transform: translate3d(128px, -24px, 40px) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  76% {
+    transform: translate3d(236px, -12px, 18px) scale(0.95) rotate(10deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(260px, 0, 0) scale(0.72) rotate(12deg);
+    opacity: 0;
+  }
+}
+
+@keyframes authStreamFlow {
+  0% {
+    background-position: 0% 50%;
+    opacity: 0.5;
+  }
+  50% {
+    background-position: 100% 50%;
+    opacity: 0.9;
+  }
+  100% {
+    background-position: 200% 50%;
+    opacity: 0.5;
+  }
+}
+
+@keyframes authHumanFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotateX(0deg);
+  }
+  50% {
+    transform: translateY(-4px) rotateX(6deg);
+  }
+}
+
+@keyframes navDropIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes softGlow {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.96;
+  }
+}
+
+.app-shell {
+  position: relative;
+  isolation: isolate;
+  perspective: 1200px;
+  background: linear-gradient(125deg, var(--bg-soft), var(--bg-warm), var(--bg-cool));
+  background-size: 220% 220%;
+  animation: shellShift 28s ease-in-out infinite;
+}
+
+.moving-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.moving-bg-layer {
+  position: absolute;
+  inset: -10%;
+}
+
+.moving-bg-gradient {
+  background:
+    radial-gradient(circle at 14% 30%, rgba(239, 68, 68, 0.23), transparent 36%),
+    radial-gradient(circle at 82% 24%, rgba(59, 130, 246, 0.2), transparent 35%),
+    radial-gradient(circle at 48% 84%, rgba(249, 115, 22, 0.18), transparent 33%);
+  animation: auroraFlow 20s ease-in-out infinite;
+}
+
+.moving-bg-grid {
+  opacity: 0.09;
+  background-image:
+    linear-gradient(rgba(220, 38, 38, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59, 130, 246, 0.14) 1px, transparent 1px);
+  background-size: 42px 42px;
+  animation: gridDrift 54s linear infinite;
+}
+
+.moving-bg-glow {
+  background:
+    conic-gradient(from 120deg at 30% 50%, rgba(254, 202, 202, 0.26), rgba(186, 230, 253, 0.1), rgba(254, 202, 202, 0.26));
+  filter: blur(20px);
+  opacity: 0.12;
+  animation: auroraFlow 42s ease-in-out infinite reverse;
+}
+
+.content-layer {
+  position: relative;
+  z-index: 1;
+}
+
+.app-nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.86);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+  animation: navDropIn 0.55s ease-out;
+}
+
+.app-nav-glow {
+  animation: softGlow 4s ease-in-out infinite;
+}
+
+.hero-stage {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(120deg, #fff7ed, #fee2e2, #ffe4e6);
+  background-size: 220% 220%;
+  animation: heroGradient 14s ease-in-out infinite;
+}
+
+.hero-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(3px);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.hero-orb-one {
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle at 30% 30%, #f97316, #ef4444);
+  top: 14%;
+  left: -90px;
+  animation: floatOrb 8s ease-in-out infinite;
+}
+
+.hero-orb-two {
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle at 30% 30%, #38bdf8, #2563eb);
+  bottom: 10%;
+  right: -70px;
+  animation: floatOrb 10s ease-in-out infinite reverse;
+}
+
+.hero-card {
+  position: relative;
+  z-index: 1;
+  animation: riseIn 0.7s ease-out, cardFloat 9s ease-in-out infinite;
+}
+
+.hero-title {
+  letter-spacing: 0.02em;
+}
+
+.starter-stage {
+  background: radial-gradient(circle at 50% 28%, rgba(220, 38, 38, 0.12), transparent 52%);
+}
+
+.starter-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.blood-drop-wrap {
+  position: relative;
+  height: 84px;
+}
+
+.blood-drop {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 28px;
+  height: 38px;
+  transform: translateX(-50%);
+  border-radius: 55% 55% 70% 70%;
+  background: linear-gradient(180deg, #ef4444, #b91c1c);
+  box-shadow: 0 10px 18px rgba(185, 28, 28, 0.35);
+  animation: bloodDropFall 2.6s cubic-bezier(0.24, 0.68, 0.18, 1) infinite;
+  transform-origin: center top;
+}
+
+.blood-ripple {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  width: 70px;
+  height: 18px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  border: 2px solid rgba(220, 38, 38, 0.32);
+  animation: bloodPulse 2.6s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+}
+
+.route-stage {
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+.auth-flow-scene {
+  position: relative;
+  height: 132px;
+  border-radius: 0.95rem;
+  border: 1px solid rgba(251, 113, 133, 0.28);
+  background:
+    radial-gradient(circle at 18% 78%, rgba(252, 165, 165, 0.28), transparent 44%),
+    radial-gradient(circle at 82% 22%, rgba(147, 197, 253, 0.26), transparent 42%),
+    linear-gradient(140deg, rgba(255, 255, 255, 0.95), rgba(255, 244, 240, 0.88));
+  overflow: hidden;
+  transform-style: preserve-3d;
+}
+
+.auth-flow-track {
+  position: absolute;
+  left: 48px;
+  right: 48px;
+  top: 58px;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(248, 113, 113, 0.6), rgba(96, 165, 250, 0.5));
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.58), 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+.auth-flow-stream {
+  position: absolute;
+  left: 54px;
+  right: 54px;
+  top: 56px;
+  height: 7px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.95), rgba(244, 63, 94, 0.25));
+  background-size: 220% 100%;
+  filter: blur(0.2px);
+  animation: authStreamFlow 1.6s linear infinite;
+}
+
+.auth-human {
+  position: absolute;
+  bottom: 24px;
+  width: 42px;
+  height: 86px;
+  transform-style: preserve-3d;
+  animation: authHumanFloat 3.6s ease-in-out infinite;
+}
+
+.auth-human-donor {
+  left: 12px;
+}
+
+.auth-human-patient {
+  right: 12px;
+  animation-delay: 0.45s;
+}
+
+.auth-human-head {
+  position: absolute;
+  left: 11px;
+  top: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #f3f4f6, #d1d5db);
+  box-shadow: inset 0 -2px 4px rgba(15, 23, 42, 0.18);
+}
+
+.auth-human-torso {
+  position: absolute;
+  left: 9px;
+  top: 24px;
+  width: 24px;
+  height: 30px;
+  border-radius: 9px;
+  background: linear-gradient(180deg, #ef4444, #991b1b);
+  box-shadow: 0 8px 14px rgba(127, 29, 29, 0.28);
+}
+
+.auth-human-patient .auth-human-torso {
+  background: linear-gradient(180deg, #3b82f6, #1e3a8a);
+  box-shadow: 0 8px 14px rgba(30, 58, 138, 0.28);
+}
+
+.auth-human-arm,
+.auth-human-leg {
+  position: absolute;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #d1d5db, #9ca3af);
+}
+
+.auth-human-arm {
+  top: 28px;
+  width: 6px;
+  height: 26px;
+}
+
+.auth-human-arm-left {
+  left: 3px;
+}
+
+.auth-human-arm-right {
+  right: 3px;
+}
+
+.auth-human-leg {
+  top: 55px;
+  width: 7px;
+  height: 28px;
+}
+
+.auth-human-leg-left {
+  left: 12px;
+}
+
+.auth-human-leg-right {
+  right: 12px;
+}
+
+.auth-flow-drop {
+  position: absolute;
+  left: 44px;
+  top: 47px;
+  width: 18px;
+  height: 24px;
+  border-radius: 56% 56% 72% 72%;
+  background: linear-gradient(180deg, #ef4444, #b91c1c);
+  box-shadow: 0 10px 20px rgba(185, 28, 28, 0.32);
+  transform-origin: center center;
+  animation: authDropTravel 2.4s cubic-bezier(0.22, 0.74, 0.22, 1) infinite;
+}
+
+.auth-flow-label {
+  position: absolute;
+  bottom: 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #334155;
+}
+
+.auth-flow-label-donor {
+  left: 8px;
+}
+
+.auth-flow-label-patient {
+  right: 6px;
+}
+
+html[data-performance="lite"] .moving-bg-grid,
+html[data-performance="lite"] .moving-bg-glow {
+  display: none;
+}
+
+html[data-performance="lite"] .moving-bg-gradient {
+  animation-duration: 28s;
+  opacity: 0.7;
+}
+
+html[data-performance="lite"] .app-nav-glow,
+html[data-performance="lite"] .hero-card {
+  animation: none !important;
+}
+
+html[data-performance="lite"] .surface-3d {
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.84);
+}
+
+.page-3d {
+  transform-style: preserve-3d;
+}
+
+.surface-3d {
+  border: 1px solid var(--surface-border);
+  background: var(--surface);
+  box-shadow:
+    var(--shadow-soft),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  transition: box-shadow 0.35s ease, transform 0.35s ease;
+}
+
+.surface-3d:hover {
+  box-shadow:
+    var(--shadow-strong),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88);
+}
+
+.emergency-fab {
+  box-shadow: 0 14px 28px rgba(185, 28, 28, 0.35);
+}
+
+.app-page {
+  min-height: 100vh;
+  padding: 2.2rem 1rem;
+}
+
+.app-card {
+  border-radius: 1.15rem;
+  padding: 1.45rem;
+}
+
+.app-title {
+  color: var(--accent-red);
+  letter-spacing: 0.01em;
+}
+
+.app-subtitle {
+  color: var(--ink-soft);
+}
+
+.app-input,
+.app-select,
+.app-number {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.98);
+  color: #0f172a;
+  padding: 0.72rem 0.95rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.app-input::placeholder,
+.app-number::placeholder {
+  color: #64748b;
+}
+
+.app-input:focus,
+.app-select:focus,
+.app-number:focus {
+  border-color: rgba(29, 78, 216, 0.55);
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.15);
+}
+
+.app-pill-btn {
+  border-radius: 0.7rem;
+  font-weight: 700;
+}
+
+.app-panel {
+  border-radius: 0.9rem;
+  border: 1px solid rgba(203, 213, 225, 0.78);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.app-chip {
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.app-empty {
+  border-radius: 0.9rem;
+  background: linear-gradient(135deg, rgba(255, 237, 213, 0.92), rgba(254, 242, 242, 0.94));
+  border: 1px solid rgba(251, 146, 60, 0.55);
+  box-shadow: 0 12px 24px rgba(251, 146, 60, 0.18);
+}
+
+@media (max-width: 768px) {
+  .moving-bg-grid {
+    opacity: 0.16;
+    background-size: 34px 34px;
+  }
+
+  .hero-orb-one {
+    width: 220px;
+    height: 220px;
+    left: -72px;
+  }
+
+  .hero-orb-two {
+    width: 210px;
+    height: 210px;
+    right: -66px;
+  }
+
+  .surface-3d {
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.84);
+  }
+
+  .app-page {
+    padding: 1.2rem 0.8rem;
+  }
+
+  .app-card {
+    padding: 1rem;
+  }
+
+  .blood-drop-wrap {
+    height: 72px;
+  }
+
+  .blood-drop {
+    width: 24px;
+    height: 33px;
+  }
+
+  .auth-flow-scene {
+    height: 118px;
+  }
+
+  .auth-human {
+    width: 36px;
+    height: 78px;
+    bottom: 20px;
+  }
+
+  .auth-human-head {
+    left: 10px;
+    width: 16px;
+    height: 16px;
+  }
+
+  .auth-human-torso {
+    left: 8px;
+    top: 20px;
+    width: 20px;
+    height: 26px;
+  }
+
+  .auth-human-arm {
+    top: 24px;
+    height: 22px;
+  }
+
+  .auth-human-leg {
+    top: 48px;
+    height: 24px;
+  }
+
+  .auth-flow-track {
+    left: 40px;
+    right: 40px;
+    top: 52px;
+  }
+
+  .auth-flow-stream {
+    left: 46px;
+    right: 46px;
+    top: 50px;
+    height: 6px;
+  }
+
+  .auth-flow-drop {
+    left: 36px;
+    top: 42px;
+    width: 15px;
+    height: 20px;
+  }
+}
+
+@media (hover: none) {
+  .surface-3d:hover {
+    box-shadow: var(--shadow-soft), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell,
+  .app-nav,
+  .app-nav-glow,
+  .hero-stage,
+  .hero-orb-one,
+  .hero-orb-two,
+  .hero-card,
+  .moving-bg-gradient,
+  .moving-bg-grid,
+  .moving-bg-glow,
+  .blood-drop,
+  .blood-ripple,
+  .auth-flow-drop,
+  .auth-human,
+  .auth-flow-stream {
+    animation: none !important;
+  }
 }

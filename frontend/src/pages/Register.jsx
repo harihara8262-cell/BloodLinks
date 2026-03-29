@@ -1,320 +1,87 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { registerDonor } from "../api";
+import AnimatedButton from "../components/AnimatedButton";
+import { useAuth } from "../context/AuthContext";
 
-/**
- * Register Page Component
- * Allows donors to register with their details
- */
+const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+
+const TAMIL_NADU_CITIES = [
+  "Ariyalur",
+  "Chengalpattu",
+  "Chennai",
+  "Coimbatore",
+  "Cuddalore",
+  "Dharmapuri",
+  "Dindigul",
+  "Erode",
+  "Kallakurichi",
+  "Kanchipuram",
+  "Kanyakumari",
+  "Karur",
+  "Krishnagiri",
+  "Madurai",
+  "Mayiladuthurai",
+  "Nagapattinam",
+  "Namakkal",
+  "Nilgiris",
+  "Perambalur",
+  "Pudukkottai",
+  "Ramanathapuram",
+  "Ranipet",
+  "Salem",
+  "Sivaganga",
+  "Tenkasi",
+  "Thanjavur",
+  "Theni",
+  "Thoothukudi",
+  "Tiruchirappalli",
+  "Tirunelveli",
+  "Tirupathur",
+  "Tiruppur",
+  "Tiruvallur",
+  "Tiruvannamalai",
+  "Tiruvarur",
+  "Vellore",
+  "Viluppuram",
+  "Virudhunagar",
+];
+
+const normalize = (value) => value.toLowerCase().replace(/[^a-z]/g, "");
+
+const getBestTamilNaduCity = (addressParts, validCities) => {
+  const candidates = [
+    addressParts.city,
+    addressParts.town,
+    addressParts.village,
+    addressParts.municipality,
+    addressParts.county,
+    addressParts.state_district,
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    const normalizedCandidate = normalize(candidate);
+    const exact = validCities.find((city) => normalize(city) === normalizedCandidate);
+    if (exact) {
+      return exact;
+    }
+    const contains = validCities.find((city) => normalize(city).includes(normalizedCandidate));
+    if (contains) {
+      return contains;
+    }
+  }
+
+  return candidates[0] || "";
+};
+
 const Register = () => {
-  const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
-  const TAMIL_NADU_CITIES = [
-    "Adyar",
-    "Ambattur",
-    "Arakkonam",
-    "Ariyalur",
-    "Attur",
-    "Avadi",
-    "Avinashi",
-    "Bodinayakkanur",
-    "Chengalpattu",
-    "Chennai",
-    "Chidambaram",
-    "Coonoor",
-    "Coimbatore",
-    "Cuddalore",
-    "Dharapuram",
-    "Dharmapuri",
-    "Dindigul",
-    "Erode",
-    "Gingee",
-    "Gobichettipalayam",
-    "Gudiyattam",
-    "Gurunur",
-    "Harur",
-    "Hosur",
-    "Iyakkudi",
-    "Jeypore",
-    "Jolarpet",
-    "Kanchipuram",
-    "Kandachipuram",
-    "Karaikudi",
-    "Karaipettai",
-    "Kargudi",
-    "Karmanghat",
-    "Karp",
-    "Karur",
-    "Kaverippattinam",
-    "Kavindapadi",
-    "Kayalpatnam",
-    "Kazi Dosa",
-    "Kodaikanal",
-    "Kottaiyur",
-    "Koyilandy",
-    "Krishnagiri",
-    "Kullanchavadi",
-    "Kunnamkulam",
-    "Kunnam",
-    "Kunpukkulum",
-    "Kurinjipadi",
-    "Kusumagiri",
-    "Madurai",
-    "Mahabalipuram",
-    "Mahindra",
-    "Mahur",
-    "Malappuram",
-    "Mamandur",
-    "Manapparai",
-    "Mandamakottai",
-    "Mangalwedha",
-    "Manjolar",
-    "Manjakuppam",
-    "Marakkanam",
-    "Mariadevchi",
-    "Marikuppam",
-    "Markanam",
-    "Markapur",
-    "Marmagao",
-    "Marmari",
-    "Marthandam",
-    "Marvellabad",
-    "Masan",
-    "Masareddi",
-    "Masareddygar",
-    "Masareddypalayam",
-    "Masareddypalayam",
-    "Masareddypet",
-    "Masareguppe",
-    "Masaret",
-    "Masarha",
-    "Masaripuram",
-    "Masarkuppam",
-    "Masarmandyam",
-    "Masarpalle",
-    "Masarpalli",
-    "Masarpalligunte",
-    "Masarpalligunte",
-    "Masarpalligunte",
-    "Masarpalligunte",
-    "Masarpalligunte",
-    "Masarpalligunte",
-    "Maharishi Vihar",
-    "Manakuppam",
-    "Manauli",
-    "Manavilasa",
-    "Mandambakkam",
-    "Manjambakkam",
-    "Manjanagaram",
-    "Maniyarkulam",
-    "Manjarai",
-    "Manjeri",
-    "Manjeshwar",
-    "Manjeshwaram",
-    "Manjeshwaram",
-    "Manjira",
-    "Manjivakkara",
-    "Manjora",
-    "Manjunath",
-    "Manjur",
-    "Manjushri",
-    "Manjushwara",
-    "Manjuvara",
-    "Manjuveli",
-    "Manjuvettu",
-    "Manivanakottai",
-    "Maniyacaud",
-    "Maniyampeta",
-    "Maniyampet",
-    "Maniyannur",
-    "Maniyapulavam",
-    "Maniyaram",
-    "Maniyarkulam",
-    "Maniyarvalai",
-    "Maniyila",
-    "Maniyilla",
-    "Manikadamba",
-    "Manikapaika",
-    "Manikalahalli",
-    "Manikal",
-    "Manikaranai",
-    "Manikancharai",
-    "Manikandapuram",
-    "Manikandapuram",
-    "Manikar",
-    "Manikari",
-    "Manikarkavalai",
-    "Manikarkavalai",
-    "Manikasila",
-    "Manikeri",
-    "Manikkampattu",
-    "Manikkamparai",
-    "Manikkampuzha",
-    "Manikkappuram",
-    "Manikkasseri",
-    "Maniked",
-    "Manikeri",
-    "Manikesi",
-    "Manikham",
-    "Manikhara",
-    "Manikhera",
-    "Manikhet",
-    "Manikhibra",
-    "Manikilangi",
-    "Manikilanka",
-    "Manikinar",
-    "Manikjhar",
-    "Manikkad",
-    "Manikkadakara",
-    "Manikkadavu",
-    "Manikkadi",
-    "Manikkakkanam",
-    "Manikkakkanam",
-    "Manikkakkanam",
-    "Manikkakkanam",
-    "Manikkal",
-    "Manikkala",
-    "Manikkalam",
-    "Manikkala",
-    "Manikkala",
-    "Manikkala",
-    "Manikkala",
-    "Manikkali",
-    "Manikkali",
-    "Manikkali",
-    "Manikkali",
-    "Manikkaman",
-    "Manikkana",
-    "Manikkana",
-    "Manikkana",
-    "Manikkana",
-    "Manikkandakkara",
-    "Manikhanda Pradesh",
-    "Manikkando",
-    "Manikkandode",
-    "Manikkandoori",
-    "Manikkandyankara",
-    "Manikkane",
-    "Manikkane",
-    "Manikkane",
-    "Manikkane",
-    "Manikhannala",
-    "Manikkannala",
-    "Manikkanna Vaka",
-    "Manikkannayya Vaka",
-    "Manikkannayya",
-    "Manikkannayya",
-    "Manikkannayya",
-    "Manikkannayya",
-    "Manikkanneda",
-    "Manikkanneru",
-    "Manikkanneru",
-    "Manikkanneru",
-    "Manikkanneru",
-    "Manikkanneru",
-    "Manikkannesh",
-    "Manikkanne",
-    "Manikkannela",
-    "Manikkanne",
-    "Manikkannela",
-    "Manikkanneryudi",
-    "Manikkanneryudi",
-    "Manikkanneryudi",
-    "Manikkanneryudi",
-    "Mayavaram",
-    "Mayiladuthurai",
-    "Mayurbhanj",
-    "Medak",
-    "Medavakkam",
-    "Medavaranam",
-    "Medavarakkanam",
-    "Medavaram",
-    "Medavaram",
-    "Medavaram",
-    "Medavaram",
-    "Medavaram",
-    "Medavaram",
-    "Medavaram",
-    "Medavaram",
-    "Medavaram",
-    "Medavaram",
-    "Medavaram",
-    "Kodambakkam",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani",
-    "Kodandapani"
-  ];
-
   const navigate = useNavigate();
+  const { markDonorRegistered } = useAuth();
+  const cityOptions = useMemo(() => TAMIL_NADU_CITIES, []);
 
   const [formData, setFormData] = useState({
     name: "",
-    email: "",
     phone: "",
     blood_group: "O+",
     address: "",
@@ -331,15 +98,26 @@ const Register = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
+
+    if (name === "phone") {
+      const onlyDigits = value.replace(/\D/g, "").slice(0, 10);
+      setFormData((prev) => ({
+        ...prev,
+        phone: onlyDigits,
+      }));
+      return;
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
   };
 
-  const handleGetLocation = async () => {
+  const handleGetLocation = () => {
     setLoading(true);
     setError("");
+    setMessage("");
 
     if (!navigator.geolocation) {
       setError("Geolocation is not supported by your browser");
@@ -349,50 +127,56 @@ const Register = () => {
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
 
         setFormData((prev) => ({
           ...prev,
-          latitude: lat,
-          longitude: lng,
+          latitude,
+          longitude,
         }));
 
-        // Reverse geocoding to get address details
         try {
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`
           );
           const data = await response.json();
-
-          // Extract address components
           const address = data.address || {};
-          const roadName = address.road || address.residential || address.neighbourhood || "";
-          const fetchedCity = address.city || address.town || address.village || "";
 
-          // Try to find a matching city in Tamil Nadu cities list
-          const matchedCity = TAMIL_NADU_CITIES.find(
-            (city) => city.toLowerCase() === fetchedCity.toLowerCase()
-          ) || fetchedCity;
+          const lineParts = [
+            address.house_number,
+            address.road || address.residential,
+            address.suburb || address.neighbourhood,
+          ].filter(Boolean);
+
+          const detectedAddress = lineParts.join(", ") || data.display_name?.split(",")[0] || "";
+          const detectedCity = getBestTamilNaduCity(address, cityOptions);
+          const state = address.state || "";
 
           setFormData((prev) => ({
             ...prev,
-            address: roadName,
-            city: matchedCity,
+            address: detectedAddress || prev.address,
+            city: detectedCity || prev.city,
           }));
 
           setLocationObtained(true);
-          setMessage("📍 Location obtained & address auto-filled!");
-        } catch (err) {
+          if (state && state.toLowerCase() !== "tamil nadu") {
+            setMessage(
+              `Location captured. State detected as ${state}. Please verify city and address before submitting.`
+            );
+          } else {
+            setMessage("Location, address and city were auto-filled. Please verify and submit.");
+          }
+        } catch (geocodeError) {
           setLocationObtained(true);
-          setMessage("📍 Location obtained! Please fill address manually.");
-          console.error("Reverse geocoding error:", err);
+          setMessage("Location captured. Please fill address and city manually.");
+          console.error("Reverse geocoding failed:", geocodeError);
+        } finally {
+          setLoading(false);
         }
-
-        setLoading(false);
       },
-      (error) => {
-        setError(`Error getting location: ${error.message}`);
+      (geoError) => {
+        setError(`Error getting location: ${geoError.message}`);
         setLoading(false);
       }
     );
@@ -402,19 +186,17 @@ const Register = () => {
     e.preventDefault();
 
     if (!formData.latitude || !formData.longitude) {
-      setError("Please obtain your location first");
+      setError("Please capture location first");
       return;
     }
 
-    if (!formData.name || !formData.email || !formData.phone || !formData.address || !formData.city) {
-      setError("Please fill in all required fields");
+    if (!formData.name || !formData.phone || !formData.address || !formData.city) {
+      setError("Please fill all required fields");
       return;
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      setError("Please enter a valid email address");
+    if (!/^\d{10}$/.test(formData.phone)) {
+      setError("Phone number must be exactly 10 digits");
       return;
     }
 
@@ -424,78 +206,105 @@ const Register = () => {
 
     try {
       const result = await registerDonor(formData);
-      
-      // Redirect to email verification page
-      navigate("/verify", {
-        state: {
-          email: formData.email,
-          name: formData.name,
-        },
-      });
-    } catch (err) {
-      setError(`❌ Registration failed: ${err.message}`);
+      if (!result?.donor_id) {
+        throw new Error(result?.detail || "Registration failed");
+      }
+      markDonorRegistered();
+      setMessage("Registration successful");
+      setTimeout(() => {
+        navigate("/", { replace: true });
+      }, 1200);
+    } catch (submitError) {
+      setError(`Registration failed: ${submitError.message}`);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-red-100 py-12 px-4">
-      <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-center text-red-600 mb-2">🩸 bloodlink</h1>
-        <p className="text-center text-gray-600 mb-8">Register as a Blood Donor</p>
+    <div className="page-3d app-page">
+      <div className="mx-auto grid w-full max-w-6xl gap-5 lg:grid-cols-[0.85fr_1.15fr]">
+        <motion.aside
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: "easeOut" }}
+          className="surface-3d app-card h-fit lg:sticky lg:top-24"
+        >
+          <h1 className="app-title mb-2 text-3xl font-bold">
+            <span className="inline-flex items-center gap-2">
+              <img src="/bloodlink-logo.svg" alt="bloodlink" className="h-9 w-9 rounded-lg bg-red-50 p-1" />
+              <span>Bloodlink</span>
+            </span>
+          </h1>
+          <p className="app-subtitle mb-5 text-sm">Register once and become available for nearby emergency requests.</p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Name */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name *</label>
+          <div className="grid gap-3">
+            <div className="app-panel p-4">
+              <p className="text-xs font-bold uppercase tracking-wide text-blue-600">Step 1</p>
+              <p className="mt-1 text-sm text-gray-700">Enter your donor details and blood group.</p>
+            </div>
+            <div className="app-panel p-4">
+              <p className="text-xs font-bold uppercase tracking-wide text-blue-600">Step 2</p>
+              <p className="mt-1 text-sm text-gray-700">Capture location and verify auto-filled address.</p>
+            </div>
+            <div className="app-panel p-4">
+              <p className="text-xs font-bold uppercase tracking-wide text-blue-600">Step 3</p>
+              <p className="mt-1 text-sm text-gray-700">Submit and stay available for urgent requests.</p>
+            </div>
+          </div>
+        </motion.aside>
+
+        <motion.div
+          initial={{ opacity: 0, y: 24, rotateX: 5 }}
+          animate={{ opacity: 1, y: 0, rotateX: 0 }}
+          transition={{ type: "spring", stiffness: 170, damping: 24 }}
+          className="surface-3d app-card"
+        >
+          <p className="app-subtitle mb-6 text-sm">Register as a Blood Donor</p>
+
+          <motion.form
+            onSubmit={handleSubmit}
+            className="space-y-4"
+            initial="hidden"
+            animate="show"
+            variants={{ hidden: {}, show: { transition: { staggerChildren: 0.05 } } }}
+          >
+          <motion.div variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }}>
+            <label className="mb-2 block text-sm font-semibold text-gray-700">Full Name</label>
             <input
               type="text"
               name="name"
               value={formData.name}
               onChange={handleInputChange}
               placeholder="Enter your full name"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="app-input"
               required
             />
-          </div>
+          </motion.div>
 
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address * (for verification)</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              placeholder="your@email.com"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-              required
-            />
-          </div>
-
-          {/* Phone */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number *</label>
+          <motion.div variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }}>
+            <label className="mb-2 block text-sm font-semibold text-gray-700">Phone Number</label>
             <input
               type="tel"
               name="phone"
               value={formData.phone}
               onChange={handleInputChange}
               placeholder="10-digit phone number"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              inputMode="numeric"
+              maxLength={10}
+              pattern="[0-9]{10}"
+              className="app-input"
               required
             />
-          </div>
+          </motion.div>
 
-          {/* Blood Group */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Blood Group *</label>
+            <label className="mb-2 block text-sm font-semibold text-gray-700">Blood Group</label>
             <select
               name="blood_group"
               value={formData.blood_group}
               onChange={handleInputChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="app-select"
             >
               {BLOOD_GROUPS.map((group) => (
                 <option key={group} value={group}>
@@ -505,32 +314,30 @@ const Register = () => {
             </select>
           </div>
 
-          {/* Address */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Address *</label>
+            <label className="mb-2 block text-sm font-semibold text-gray-700">Address</label>
             <input
               type="text"
               name="address"
               value={formData.address}
               onChange={handleInputChange}
-              placeholder="Street address"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              placeholder="Street or locality"
+              className="app-input"
               required
             />
           </div>
 
-          {/* City */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">City *</label>
+            <label className="mb-2 block text-sm font-semibold text-gray-700">City</label>
             <select
               name="city"
               value={formData.city}
               onChange={handleInputChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="app-select"
               required
             >
               <option value="">-- Select City --</option>
-              {TAMIL_NADU_CITIES.map((city) => (
+              {cityOptions.map((city) => (
                 <option key={city} value={city}>
                   {city}
                 </option>
@@ -538,49 +345,48 @@ const Register = () => {
             </select>
           </div>
 
-          {/* Location */}
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">📍 Location {locationObtained && "✓"}</label>
+          <div className="app-panel p-4">
+            <label className="mb-2 block text-sm font-semibold text-gray-700">
+              Location {locationObtained ? "captured" : "required"}
+            </label>
             {formData.latitude && formData.longitude && (
-              <p className="text-xs text-gray-600 mb-2">
-                Lat: {formData.latitude.toFixed(4)}, Lng: {formData.longitude.toFixed(4)}
+              <p className="mb-2 text-xs text-gray-600">
+                Lat: {formData.latitude.toFixed(5)}, Lng: {formData.longitude.toFixed(5)}
               </p>
             )}
-            <button
+            <AnimatedButton
               type="button"
               onClick={handleGetLocation}
               disabled={loading}
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg mb-2 transition-colors"
+              className="app-pill-btn w-full rounded-lg bg-blue-500 px-4 py-2 font-semibold text-white transition-colors hover:bg-blue-600"
             >
-              {loading ? "Getting Location..." : "📍 Get My Location"}
-            </button>
+              {loading ? "Detecting location..." : "Detect Location and Auto-fill Address"}
+            </AnimatedButton>
           </div>
 
-          {/* Availability */}
           <div className="flex items-center">
             <input
               type="checkbox"
               name="available"
               checked={formData.available}
               onChange={handleInputChange}
-              className="w-4 h-4 text-red-600 rounded focus:ring-2 focus:ring-red-500"
+              className="h-4 w-4 rounded text-red-600 focus:ring-2 focus:ring-red-500"
             />
             <label className="ml-3 text-sm font-semibold text-gray-700">Available to donate</label>
           </div>
 
-          {/* Messages */}
-          {message && <div className="p-3 bg-green-100 border border-green-300 text-green-700 rounded-lg text-sm">{message}</div>}
-          {error && <div className="p-3 bg-red-100 border border-red-300 text-red-700 rounded-lg text-sm">{error}</div>}
+          {message && <div className="rounded-lg border border-green-300 bg-green-100 p-3 text-sm text-green-700">{message}</div>}
+          {error && <div className="rounded-lg border border-red-300 bg-red-100 p-3 text-sm text-red-700">{error}</div>}
 
-          {/* Submit Button */}
-          <button
+          <AnimatedButton
             type="submit"
             disabled={loading}
-            className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition-colors disabled:opacity-50"
+            className="app-pill-btn w-full rounded-lg bg-red-600 px-4 py-3 font-bold text-white transition-colors hover:bg-red-700 disabled:opacity-50"
           >
-            {loading ? "Registering..." : "✓ Register as Donor"}
-          </button>
-        </form>
+            {loading ? "Saving..." : "Register as Donor"}
+          </AnimatedButton>
+          </motion.form>
+        </motion.div>
       </div>
     </div>
   );

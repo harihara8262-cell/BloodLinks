@@ -2,15 +2,14 @@
 Donor model and validation schemas
 """
 
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 
 class DonorBase(BaseModel):
     """Base donor model"""
     name: str
-    email: EmailStr
-    phone: str
+    phone: str = Field(pattern=r"^[6-9]\d{9}$")
     blood_group: str
     address: str
     city: str
@@ -34,7 +33,6 @@ class DonorResponse(DonorBase):
     """Donor response model"""
     id: Optional[str] = Field(None, alias="_id")
     created_at: datetime
-    email_verified: bool = False
     distance: Optional[float] = None  # Will be calculated on search
     
     class Config:
@@ -59,5 +57,14 @@ class SearchQuery(BaseModel):
     latitude: float
     longitude: float
     radius: float = 5.0  # Default 5 km
+
+
+class EmergencyAlertRequest(BaseModel):
+    """Emergency alert request model"""
+    blood_group: str
+    latitude: float
+    longitude: float
+    message: Optional[str] = None
+    requester_name: Optional[str] = None
 
 BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]

@@ -5,6 +5,26 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
 
+export const registerUser = async (payload) => {
+  return fetch(`${API_BASE_URL}/auth/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+};
+
+export const loginUser = async (payload) => {
+  return fetch(`${API_BASE_URL}/auth/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+};
+
 // Donor Registration
 export const registerDonor = async (donorData) => {
   try {
@@ -51,6 +71,28 @@ export const emergencySearch = async (blood, latitude, longitude) => {
     return await response.json();
   } catch (error) {
     console.error("Error in emergency search:", error);
+    throw error;
+  }
+};
+
+export const sendEmergencyAlert = async ({ blood_group, latitude, longitude, message, requester_name }) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/donor/emergency-alert`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        blood_group,
+        latitude,
+        longitude,
+        message,
+        requester_name,
+      }),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Error sending emergency alert:", error);
     throw error;
   }
 };
