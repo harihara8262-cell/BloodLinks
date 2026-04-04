@@ -41,7 +41,7 @@ const Search = () => {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         });
-        setMessage("📍 Location obtained successfully!");
+        setMessage("Location captured successfully.");
         setLoading(false);
       },
       (error) => {
@@ -78,7 +78,7 @@ const Search = () => {
           userLocation.latitude,
           userLocation.longitude
         );
-        setMessage(`🚨 ${result.message}`);
+        setMessage(result.message || "Emergency search activated.");
       } else {
         result = await searchDonors(
           searchParams.blood_group,
@@ -101,9 +101,9 @@ const Search = () => {
       }
 
       if (result.donors_found === 0) {
-        setMessage("🚨 No matching donors nearby right now. Try a wider radius or switch on Emergency Mode.");
+        setMessage("No matching donors found nearby. Increase the radius or enable Emergency Mode.");
       } else {
-        setMessage(`✅ Found ${result.donors_found} donor(s) within ${result.search_radius} km`);
+        setMessage(`Found ${result.donors_found} donor(s) within ${result.search_radius} km.`);
       }
       return true;
     } catch (err) {
@@ -149,7 +149,7 @@ const Search = () => {
       }
 
       if ((result.notifications_sent || 0) > 0) {
-        setMessage("✅ Alert sent successfully");
+        setMessage("Emergency alert sent successfully.");
       } else if ((result.donors_found || 0) > 0) {
         const firstFailure = result.notification_failures?.[0]?.reason;
         const reasonText = firstFailure ? ` Reason: ${firstFailure}` : "";
@@ -168,9 +168,9 @@ const Search = () => {
           actionText = " Update donor phone numbers to valid mobile format and try again.";
         }
 
-        setMessage(`⚠️ Found ${result.donors_found} donor(s), but SMS was not sent.${reasonText}${actionText}`);
+        setMessage(`Found ${result.donors_found} donor(s), but SMS could not be sent.${reasonText}${actionText}`);
       } else {
-        setMessage("🚨 No donors found even in 20 km. Stay calm and try again in a moment.");
+        setMessage("No donors were found within 20 km. Please retry in a moment.");
       }
     } catch (err) {
       setError(`Emergency alert failed: ${err.message}`);
@@ -194,19 +194,23 @@ const Search = () => {
           initial={{ opacity: 0, x: -24 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
-          className="h-fit sticky top-28 self-start"
+          className="h-fit self-start lg:sticky lg:top-24"
         >
-          <div className="search-sidebar surface-3d overflow-hidden rounded-3xl">
+          <div className="search-sidebar surface-3d overflow-hidden rounded-3xl lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
             <div className="search-sidebar-header">
               <div className="search-sidebar-bg" />
-              <div className="relative z-10 p-6">
+              <div className="search-sidebar-content relative z-10 p-6">
                 <div className="search-kicker">Search Mode</div>
-                <h1 className="mt-3 text-3xl font-bold text-white">Find Donors</h1>
-                <p className="mt-2 text-sm leading-6 text-red-100">Quick access to nearby blood donors</p>
+                <h1 className="search-sidebar-title mt-4">Find Donors</h1>
+                <p className="search-sidebar-subtitle mt-3">Quick access to nearby blood donors</p>
+                <div className="search-header-metrics mt-5">
+                  <span className="search-header-chip">Live Tracking</span>
+                  <span className="search-header-chip">Geo Verified</span>
+                </div>
               </div>
             </div>
 
-            <form onSubmit={handleSearch} className="space-y-5 p-6">
+            <form onSubmit={handleSearch} className="space-y-5 p-6 md:space-y-5 md:p-7">
               <div>
                 <label className="search-label">Blood Group *</label>
                 <select
@@ -243,7 +247,7 @@ const Search = () => {
                 disabled={loading}
                 className="search-btn-location w-full"
               >
-                📍 Get Location
+                Get Location
               </AnimatedButton>
 
               <div className="search-emergency-toggle">
@@ -255,10 +259,10 @@ const Search = () => {
                 >
                   {useEmergencyMode ? (
                     <>
-                      <span className="inline-block animate-bounce">🚨</span> Emergency Active
+                      Emergency Mode Active
                     </>
                   ) : (
-                    <>⚪ Normal Mode</>
+                    <>Normal Mode</>
                   )}
                 </button>
               </div>
@@ -269,14 +273,14 @@ const Search = () => {
                   onClick={() => setViewMode("list")}
                   className={viewMode === "list" ? "search-view-btn search-view-active" : "search-view-btn search-view-inactive"}
                 >
-                  📋 List
+                  List
                 </button>
                 <button
                   type="button"
                   onClick={() => setViewMode("map")}
                   className={viewMode === "map" ? "search-view-btn search-view-active" : "search-view-btn search-view-inactive"}
                 >
-                  🗺️ Map
+                  Map
                 </button>
               </div>
 
@@ -286,7 +290,7 @@ const Search = () => {
                   disabled={loading || !userLocation}
                   className="search-btn-search"
                 >
-                  {loading ? "Searching..." : "🔍 Search"}
+                  {loading ? "Searching..." : "Search"}
                 </AnimatedButton>
 
                 <AnimatedButton
@@ -295,13 +299,13 @@ const Search = () => {
                   disabled={loading}
                   className="search-btn-emergency"
                 >
-                  🚨 Alert
+                  Alert
                 </AnimatedButton>
               </div>
 
               <div className="search-tip">
                 <p className="text-xs leading-5">
-                  <span className="font-bold">💡 Tip:</span> Start with normal search, then use Emergency Mode if needed.
+                  <span className="font-bold">Tip:</span> Start with normal search. Use Emergency Mode only when required.
                 </p>
               </div>
             </form>
@@ -316,8 +320,10 @@ const Search = () => {
           transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
         >
           <div className="search-status-card">
-            <div className="search-status-icon">
-              {searchMeta.donorsFound > 0 ? "✅" : "ℹ️"}
+            <div className={`search-status-icon ${searchMeta.donorsFound > 0 ? "is-ok" : "is-info"}`}>
+              <span className="search-status-core" />
+              <span className="search-status-ring" />
+              <span className="search-status-label">{searchMeta.donorsFound > 0 ? "Live" : "Scan"}</span>
             </div>
             <p className="search-status-text">
               {searchMeta.donorsFound > 0
@@ -378,7 +384,7 @@ const Search = () => {
                       animate={{ opacity: 1, y: 0 }}
                       className="search-results-header"
                     >
-                      📌 Available Donors ({donors.length})
+                      Available Donors ({donors.length})
                     </motion.h2>
                     <motion.div
                       className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
@@ -411,7 +417,7 @@ const Search = () => {
                       animate={{ opacity: 1, y: 0 }}
                       className="search-results-header"
                     >
-                      🗺️ Donors on Map ({donors.length})
+                      Donors on Map ({donors.length})
                     </motion.h2>
                     <Suspense
                       fallback={
@@ -442,13 +448,13 @@ const Search = () => {
                             <span className="search-blood-badge">{selectedDonor.blood_group}</span>
                           </div>
                           <p className="search-donor-address">{selectedDonor.address}</p>
-                          <p className="search-donor-distance">📍 {selectedDonor.distance} km away</p>
+                          <p className="search-donor-distance">Distance: {selectedDonor.distance} km</p>
                           <div className="mt-5 grid grid-cols-2 gap-3">
                             <AnimatedButton
                               onClick={() => handleCallDonor(selectedDonor)}
                               className="search-btn-call"
                             >
-                              📞 Call
+                              Call
                             </AnimatedButton>
                             <AnimatedButton
                               onClick={() => setSelectedDonor(null)}
@@ -478,11 +484,13 @@ const Search = () => {
                     animate={{ y: [0, -8, 0] }}
                     transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
                   >
-                    🚨
+                    <span className="search-radar-core" />
+                    <span className="search-radar-ring search-radar-ring-1" />
+                    <span className="search-radar-ring search-radar-ring-2" />
                   </motion.div>
                   <p className="search-empty-title">No donors found nearby</p>
                   <p className="search-empty-text">
-                    Expand your radius, refresh location, or trigger Emergency Mode to reach more donors quickly.
+                    Increase your radius, refresh location, or enable Emergency Mode to reach more donors.
                   </p>
                   <motion.button
                     onClick={handleGetLocation}
@@ -490,7 +498,7 @@ const Search = () => {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    🔄 Refresh Location
+                    Refresh Location
                   </motion.button>
                 </motion.div>
               )}
