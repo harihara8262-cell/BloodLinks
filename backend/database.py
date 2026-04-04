@@ -24,6 +24,9 @@ async def connect_to_mongo():
         donors_collection = db["donors"]
         await donors_collection.create_index("blood_group")
         await donors_collection.create_index([("location", "2dsphere")])
+
+        users_collection = db["users"]
+        await users_collection.create_index("username", unique=True)
         
         print("✓ Connected to MongoDB successfully")
     except Exception as e:
@@ -44,3 +47,8 @@ def get_db():
 async def get_donors_collection():
     """Get donors collection"""
     return get_db()["donors"]
+
+
+async def get_users_collection():
+    """Get users collection"""
+    return get_db()["users"]

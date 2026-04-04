@@ -5,10 +5,10 @@ Donor API routes
 from fastapi import APIRouter, HTTPException, Query
 from bson import ObjectId
 from database import get_donors_collection
-from models.donor import DonorCreate, DonorResponse, SearchQuery, EmergencyAlertRequest, BLOOD_GROUPS
+from models.donor import DonorCreate, DonorResponse, SearchQuery, EmergencyAlertRequest, BLOOD_GROUPS, GENDER_OPTIONS
 from utils.distance import calculate_distance, is_within_radius
 from utils.notifications import send_emergency_sms_to_donors
-from datetime import datetime
+from datetime import date, datetime
 
 router = APIRouter()
 
@@ -29,6 +29,8 @@ async def _collect_matching_donors(blood: str, lat: float, lng: float, radius: f
                     "id": str(donor["_id"]),
                     "name": donor["name"],
                     "phone": donor["phone"],
+                    "gender": donor.get("gender"),
+                    "date_of_birth": donor.get("date_of_birth"),
                     "blood_group": donor["blood_group"],
                     "address": donor["address"],
                     "city": donor["city"],
@@ -53,6 +55,16 @@ async def register_donor(donor: DonorCreate):
     # Validate blood group
     if donor.blood_group not in BLOOD_GROUPS:
         raise HTTPException(status_code=400, detail="Invalid blood group")
+
+    if donor.gender not in GENDER_OPTIONS:
+        raise HTTPException(status_code=400, detail="Invalid gender")
+
+    today = date.today()
+    age = today.year - donor.date_of_birth.year - (
+        (today.month, today.day) < (donor.date_of_birth.month, donor.date_of_birth.day)
+    )
+    if age < 18:
+        raise HTTPException(status_code=400, detail="You must be 18 or older to register as a donor")
     
     # Validate coordinates
     if not (-90 <= donor.latitude <= 90) or not (-180 <= donor.longitude <= 180):
@@ -62,6 +74,7 @@ async def register_donor(donor: DonorCreate):
     
     donor_dict = {
         **donor.dict(),
+        "date_of_birth": donor.date_of_birth.isoformat(),
         "location": {
             "type": "Point",
             "coordinates": [donor.longitude, donor.latitude]  # GeoJSON format
@@ -249,6 +262,8 @@ async def get_all_donors():
             "id": str(donor["_id"]),
             "name": donor["name"],
             "phone": donor["phone"],
+            "gender": donor.get("gender"),
+            "date_of_birth": donor.get("date_of_birth"),
             "blood_group": donor["blood_group"],
             "address": donor["address"],
             "city": donor["city"],

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">BloodLink logo</title>
+  <desc id="desc">Glossy red blood drop with centered white medical cross</desc>
+  <defs>
+    <radialGradient id="dropFill" cx="42%" cy="28%" r="78%">
+      <stop offset="0%" stop-color="#ff7a72"/>
+      <stop offset="34%" stop-color="#ff3b30"/>
+      <stop offset="78%" stop-color="#e1161d"/>
+      <stop offset="100%" stop-color="#a80f16"/>
+    </radialGradient>
+    <radialGradient id="dropGlow" cx="34%" cy="24%" r="62%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.92"/>
+      <stop offset="28%" stop-color="#ffffff" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="dropShade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.14"/>
+    </linearGradient>
+    <filter id="shadow" x="-24%" y="-18%" width="148%" height="160%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#7f1116" flood-opacity="0.34"/>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" fill="#ffffff"/>
+
+  <g filter="url(#shadow)">
+    <path d="M256 38c-31 66-78 116-112 168-33 50-54 96-54 143 0 93 77 129 166 129s166-36 166-129c0-47-21-93-54-143-34-52-81-102-112-168z" fill="url(#dropFill)"/>
+
+    <path d="M256 60c-20 49-53 87-82 127-26 36-43 73-43 113 0 68 56 102 125 102s125-34 125-102c0-40-17-77-43-113-29-40-62-78-82-127z" fill="url(#dropGlow)" opacity="0.88"/>
+
+    <path d="M256 66c-16 42-46 76-69 109-22 31-34 59-34 92 0 56 46 83 103 83s103-27 103-83c0-33-12-61-34-92-23-33-53-67-69-109z" fill="url(#dropShade)" opacity="0.42"/>
+
+    <path d="M223 196c7-12 19-23 33-23s26 11 33 23c7 11 11 25 11 40 0 43-44 70-44 70s-44-27-44-70c0-15 4-29 11-40z" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.28"/>
+
+    <circle cx="256" cy="260" r="82" fill="none" stroke="#ffffff" stroke-width="3.5" opacity="0.72"/>
+
+    <path d="M236 243h20v-20h20v20h20v20h-20v20h-20v-20h-20z" fill="#ffffff"/>
+  </g>
+</svg>

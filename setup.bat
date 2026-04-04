@@ -6,7 +6,7 @@ echo.
 echo 🩸 BloodConnect - Quick Startup (Windows)
 echo ==========================================
 echo.
-echo Frontend: http://localhost:3000
+echo Frontend: http://localhost:3002
 echo Backend: http://localhost:8000
 echo API Docs: http://localhost:8000/docs
 echo.
@@ -35,14 +35,14 @@ start "BloodConnect Backend" cmd /c "cd backend && venv\Scripts\activate && pyth
 timeout /t 3 /nobreak
 
 REM Start Frontend
-echo [2/2] Starting React Frontend on port 3000...
+echo [2/2] Starting React Frontend on port 3002...
 start "BloodConnect Frontend" cmd /c "cd frontend && npm run dev"
 
 echo.
 echo ============================================
 echo ✅ Services started!
 echo.
-echo Frontend:  http://localhost:3000
+echo Frontend:  http://localhost:3002
 echo Backend:   http://localhost:8000
 echo API Docs:  http://localhost:8000/docs
 echo.

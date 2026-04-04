@@ -10,6 +10,7 @@ import "./App.css";
 const Auth = lazy(() => import("./pages/Auth"));
 const Register = lazy(() => import("./pages/Register"));
 const Search = lazy(() => import("./pages/Search"));
+const Profile = lazy(() => import("./pages/Profile"));
 
 function RouteFallback() {
   return (
@@ -22,7 +23,7 @@ function RouteFallback() {
 }
 
 function Navigation() {
-  const { isAuthenticated, logout, hasRegisteredDonor } = useAuth();
+  const { isAuthenticated, logout, hasRegisteredDonor, canRegisterDonor } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -34,13 +35,19 @@ function Navigation() {
     <nav className="app-nav app-nav-glow">
       <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4">
         <Link to="/" className="flex items-center gap-2 text-2xl font-bold tracking-tight text-slate-900">
-          <img src="/bloodlink-logo.svg" alt="bloodlink" className="h-9 w-9 rounded-lg bg-red-50 p-1" />
+          <img src="/bloodlink-logo.svg?v=4" alt="bloodlink" className="h-9 w-9 rounded-lg bg-red-50 p-1" />
           <span>Bloodlink</span>
         </Link>
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           {isAuthenticated ? (
             <>
-              {!hasRegisteredDonor && (
+              <Link
+                to="/profile"
+                className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
+              >
+                Profile
+              </Link>
+              {canRegisterDonor && !hasRegisteredDonor && (
                 <Link
                   to="/register"
                   className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
@@ -70,7 +77,7 @@ function Navigation() {
 }
 
 function AppContent() {
-  const { isAuthenticated, hasRegisteredDonor } = useAuth();
+  const { isAuthenticated, hasRegisteredDonor, canRegisterDonor } = useAuth();
   const location = useLocation();
 
   useEffect(() => {
@@ -162,7 +169,7 @@ function AppContent() {
                         >
                           <h1 className="hero-title app-title mb-4 text-4xl font-bold sm:text-5xl">
                             <span className="inline-flex items-center gap-3">
-                              <img src="/bloodlink-logo.svg" alt="bloodlink" className="h-12 w-12 rounded-xl bg-red-50 p-1.5" />
+                              <img src="/bloodlink-logo.svg?v=4" alt="bloodlink" className="h-12 w-12 rounded-xl bg-red-50 p-1.5" />
                               <span>Bloodlink</span>
                             </span>
                           </h1>
@@ -180,7 +187,7 @@ function AppContent() {
                             animate="show"
                             variants={{ hidden: {}, show: { transition: { staggerChildren: 0.08 } } }}
                           >
-                            {!hasRegisteredDonor && (
+                            {canRegisterDonor && !hasRegisteredDonor && (
                               <motion.div variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }}>
                                 <Link to="/register">
                                   <AnimatedButton className="app-pill-btn rounded-lg bg-red-600 px-7 py-3 font-bold text-white transition-colors hover:bg-red-700">
@@ -237,7 +244,7 @@ function AppContent() {
                 <PageTransition>
                   <ProtectedRoute>
                     <Suspense fallback={<RouteFallback />}>
-                      {hasRegisteredDonor ? <Navigate to="/search" replace /> : <Register />}
+                      {hasRegisteredDonor || !canRegisterDonor ? <Navigate to="/home" replace /> : <Register />}
                     </Suspense>
                   </ProtectedRoute>
                 </PageTransition>
@@ -250,6 +257,18 @@ function AppContent() {
                   <ProtectedRoute>
                     <Suspense fallback={<RouteFallback />}>
                       <Search />
+                    </Suspense>
+                  </ProtectedRoute>
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <PageTransition>
+                  <ProtectedRoute>
+                    <Suspense fallback={<RouteFallback />}>
+                      <Profile />
                     </Suspense>
                   </ProtectedRoute>
                 </PageTransition>

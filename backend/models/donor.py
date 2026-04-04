@@ -2,15 +2,20 @@
 Donor model and validation schemas
 """
 
-from pydantic import BaseModel, Field, EmailStr
+from datetime import date, datetime
 from typing import Optional
-from datetime import datetime
+
+from pydantic import BaseModel, EmailStr, Field
+
+GENDER_OPTIONS = ["Male", "Female", "Other", "Prefer not to say"]
 
 class DonorBase(BaseModel):
     """Base donor model"""
     name: str
-    email: EmailStr
+    email: Optional[EmailStr] = None
     phone: str
+    gender: str
+    date_of_birth: date
     blood_group: str
     address: str
     city: str
@@ -43,6 +48,8 @@ class DonorResponse(DonorBase):
             "example": {
                 "name": "Arun Kumar",
                 "phone": "9876543210",
+                "gender": "Male",
+                "date_of_birth": "1998-06-15",
                 "blood_group": "A+",
                 "address": "Anna Nagar",
                 "city": "Chennai",
@@ -59,5 +66,14 @@ class SearchQuery(BaseModel):
     latitude: float
     longitude: float
     radius: float = 5.0  # Default 5 km
+
+
+class EmergencyAlertRequest(BaseModel):
+    """Emergency alert payload"""
+    blood_group: str
+    latitude: float
+    longitude: float
+    message: Optional[str] = None
+    requester_name: Optional[str] = None
 
 BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]

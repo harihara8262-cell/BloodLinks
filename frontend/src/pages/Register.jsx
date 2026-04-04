@@ -6,6 +6,8 @@ import AnimatedButton from "../components/AnimatedButton";
 import { useAuth } from "../context/AuthContext";
 
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+const GENDER_OPTIONS = ["Male", "Female", "Other", "Prefer not to say"];
+const MINIMUM_AGE = 18;
 
 const TAMIL_NADU_CITIES = [
   "Ariyalur",
@@ -50,6 +52,23 @@ const TAMIL_NADU_CITIES = [
 
 const normalize = (value) => value.toLowerCase().replace(/[^a-z]/g, "");
 
+const calculateAge = (dateOfBirth) => {
+  if (!dateOfBirth) return null;
+
+  const dob = new Date(dateOfBirth);
+  if (Number.isNaN(dob.getTime())) return null;
+
+  const today = new Date();
+  let age = today.getFullYear() - dob.getFullYear();
+  const monthDifference = today.getMonth() - dob.getMonth();
+
+  if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < dob.getDate())) {
+    age -= 1;
+  }
+
+  return age;
+};
+
 const getBestTamilNaduCity = (addressParts, validCities) => {
   const candidates = [
     addressParts.city,
@@ -83,6 +102,8 @@ const Register = () => {
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
+    gender: "",
+    date_of_birth: "",
     blood_group: "O+",
     address: "",
     city: "",
@@ -185,13 +206,25 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const age = calculateAge(formData.date_of_birth);
+
     if (!formData.latitude || !formData.longitude) {
       setError("Please capture location first");
       return;
     }
 
-    if (!formData.name || !formData.phone || !formData.address || !formData.city) {
+    if (!formData.name || !formData.phone || !formData.gender || !formData.date_of_birth || !formData.address || !formData.city) {
       setError("Please fill all required fields");
+      return;
+    }
+
+    if (age === null) {
+      setError("Please enter a valid date of birth");
+      return;
+    }
+
+    if (age < MINIMUM_AGE) {
+      setError(`You must be at least ${MINIMUM_AGE} years old to register as a donor`);
       return;
     }
 
@@ -232,7 +265,7 @@ const Register = () => {
         >
           <h1 className="app-title mb-2 text-3xl font-bold">
             <span className="inline-flex items-center gap-2">
-              <img src="/bloodlink-logo.svg" alt="bloodlink" className="h-9 w-9 rounded-lg bg-red-50 p-1" />
+              <img src="/bloodlink-logo.svg?v=4" alt="bloodlink" className="h-9 w-9 rounded-lg bg-red-50 p-1" />
               <span>Bloodlink</span>
             </span>
           </h1>
@@ -260,7 +293,7 @@ const Register = () => {
           transition={{ type: "spring", stiffness: 170, damping: 24 }}
           className="surface-3d app-card"
         >
-          <p className="app-subtitle mb-6 text-sm">Register as a Blood Donor</p>
+          <p className="app-subtitle mb-6 text-sm">Register as a Blood Donor. Donors must be 18 years or older.</p>
 
           <motion.form
             onSubmit={handleSubmit}
@@ -312,6 +345,50 @@ const Register = () => {
                 </option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-gray-700">Gender</label>
+            <select
+              name="gender"
+              value={formData.gender}
+              onChange={handleInputChange}
+              className="app-select"
+              required
+            >
+              <option value="">-- Select Gender --</option>
+              {GENDER_OPTIONS.map((gender) => (
+                <option key={gender} value={gender}>
+                  {gender}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-gray-700">Date of Birth</label>
+            <input
+              type="date"
+              name="date_of_birth"
+              value={formData.date_of_birth}
+              onChange={handleInputChange}
+              max={new Date().toISOString().split("T")[0]}
+              className="app-input"
+              required
+            />
+            <p className="mt-2 text-xs text-gray-600">
+              {formData.date_of_birth
+                ? (() => {
+                    const age = calculateAge(formData.date_of_birth);
+                    if (age === null) {
+                      return "Enter a valid date of birth.";
+                    }
+                    return age >= MINIMUM_AGE
+                      ? `Verified: ${age} years old.`
+                      : `Age check failed: ${age} years old. You must be at least ${MINIMUM_AGE}.`;
+                  })()
+                : "Used to verify donor age."}
+            </p>
           </div>
 
           <div>
