@@ -71,12 +71,10 @@ const Auth = () => {
       return;
     }
 
-    if (mode === "signup") {
-      const usernameError = validateUsername(username.trim());
-      if (usernameError) {
-        setError(usernameError);
-        return;
-      }
+    const usernameError = validateUsername(username.trim());
+    if (usernameError) {
+      setError(usernameError);
+      return;
     }
 
     const passwordError = validatePassword(password);
@@ -252,11 +250,9 @@ const Auth = () => {
                   required
                 />
               </div>
-              {mode === "signup" && (
-                <p className="auth-input-hint mt-2 text-xs text-slate-500">
-                  {username.length <= 8 ? '✗' : '✓'} More than 8 characters • {/[A-Z]/.test(username) ? '✓' : '✗'} Uppercase • {/[a-z]/.test(username) ? '✓' : '✗'} Lowercase • {/\d/.test(username) ? '✓' : '✗'} Number • {/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(username) ? '✓' : '✗'} Special
-                </p>
-              )}
+              <p className="auth-input-hint mt-2 text-xs text-slate-500">
+                {username.length <= 8 ? '✗' : '✓'} More than 8 characters • {/[A-Z]/.test(username) ? '✓' : '✗'} Uppercase • {/[a-z]/.test(username) ? '✓' : '✗'} Lowercase • {/\d/.test(username) ? '✓' : '✗'} Number • {/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(username) ? '✓' : '✗'} Special
+              </p>
             </motion.div>
 
             {/* Password Input */}
