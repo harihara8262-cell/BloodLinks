@@ -19,6 +19,44 @@ const Auth = () => {
 
   const targetPath = location.state?.from?.pathname || "/home";
 
+  const validateUsername = (username) => {
+    if (username.length <= 8) {
+      return "Username must be more than 8 characters";
+    }
+    if (!/[A-Z]/.test(username)) {
+      return "Username must contain at least one uppercase letter";
+    }
+    if (!/[a-z]/.test(username)) {
+      return "Username must contain at least one lowercase letter";
+    }
+    if (!/\d/.test(username)) {
+      return "Username must contain at least one number";
+    }
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(username)) {
+      return "Username must contain at least one special character (!@#$%^&*)";
+    }
+    return null;
+  };
+
+  const validatePassword = (password) => {
+    if (password.length <= 8) {
+      return "Password must be more than 8 characters";
+    }
+    if (!/[A-Z]/.test(password)) {
+      return "Password must contain at least one uppercase letter";
+    }
+    if (!/[a-z]/.test(password)) {
+      return "Password must contain at least one lowercase letter";
+    }
+    if (!/\d/.test(password)) {
+      return "Password must contain at least one number";
+    }
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+      return "Password must contain at least one special character (!@#$%^&*)";
+    }
+    return null;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -33,8 +71,17 @@ const Auth = () => {
       return;
     }
 
-    if (password.trim().length < 8) {
-      setError("Password must contain at least 8 characters");
+    if (mode === "signup") {
+      const usernameError = validateUsername(username.trim());
+      if (usernameError) {
+        setError(usernameError);
+        return;
+      }
+    }
+
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(passwordError);
       return;
     }
 
@@ -205,6 +252,11 @@ const Auth = () => {
                   required
                 />
               </div>
+              {mode === "signup" && (
+                <p className="auth-input-hint mt-2 text-xs text-slate-500">
+                  {username.length <= 8 ? '✗' : '✓'} More than 8 characters • {/[A-Z]/.test(username) ? '✓' : '✗'} Uppercase • {/[a-z]/.test(username) ? '✓' : '✗'} Lowercase • {/\d/.test(username) ? '✓' : '✗'} Number • {/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(username) ? '✓' : '✗'} Special
+                </p>
+              )}
             </motion.div>
 
             {/* Password Input */}
@@ -221,14 +273,14 @@ const Auth = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="auth-input-premium"
-                  placeholder="Minimum 8 characters"
-                  minLength={8}
+                  placeholder="9+ characters, mixed case, number & special char"
+                  minLength={9}
                   required
                 />
               </div>
-              {mode === "login" && (
-                <p className="auth-input-hint mt-2">8+ characters for security</p>
-              )}
+              <p className="auth-input-hint mt-2 text-xs text-slate-500">
+                {password.length <= 8 ? '✗' : '✓'} More than 8 chars • {/[A-Z]/.test(password) ? '✓' : '✗'} Uppercase • {/[a-z]/.test(password) ? '✓' : '✗'} Lowercase • {/\d/.test(password) ? '✓' : '✗'} Number • {/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) ? '✓' : '✗'} Special
+              </p>
             </motion.div>
 
             {/* Confirm Password Input - Signup Only */}
@@ -247,7 +299,7 @@ const Auth = () => {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className="auth-input-premium"
                     placeholder="Confirm your password"
-                    minLength={8}
+                  minLength={9}
                     required
                   />
                 </div>
