@@ -170,8 +170,7 @@ function AppContent() {
                           <div className="home-hero-bg" />
                           <div className="relative z-10 flex flex-col gap-6 p-6 sm:p-8 md:flex-row md:items-start md:justify-between">
                             <div className="flex-1">
-                              <div className="home-kicker">Welcome back</div>
-                              <h1 className="mt-3 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
+                                  <h1 className="mt-0 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
                                 <span className="inline-flex items-center gap-3">
                                   <img src="/bloodlink-logo.svg?v=4" alt="bloodlink" className="h-12 w-12 rounded-lg bg-red-50 p-1 ring-1 ring-red-100" />
                                   <span>Bloodlink</span>
