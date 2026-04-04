@@ -89,9 +89,10 @@ const Auth = () => {
         transition={{ duration: 0.5, ease: "easeOut" }}
       >
         <div className="mb-12">
-          <h2 className="text-4xl font-bold text-white mb-4">Bloodlink</h2>
-          <p className="text-lg text-red-100 max-w-sm leading-relaxed">
-            Connect lives through blood donation. Every drop matters.
+          <h2 className="text-4xl font-bold text-white mb-2">Bloodlink</h2>
+          <p className="text-sm font-medium text-red-200 track-wider uppercase mb-4">Donation Network</p>
+          <p className="text-base text-red-100 max-w-sm leading-relaxed">
+            Connecting people who save lives with those who need them most.
           </p>
         </div>
 
@@ -102,10 +103,10 @@ const Auth = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
           >
-            <div className="auth-benefit-icon">📍</div>
+            <div className="auth-benefit-icon text-2xl font-bold text-white" style={{minWidth: '2rem'}}>01</div>
             <div>
-              <h3 className="font-bold text-white mb-1">Find Nearby Donors</h3>
-              <p className="text-sm text-red-100">Locate blood donors within 5-20 km radius in real-time</p>
+              <h3 className="font-semibold text-white mb-1 text-sm">Locate Nearby Donors</h3>
+              <p className="text-xs text-red-100">Find blood donors 5-20 km away in real-time</p>
             </div>
           </motion.div>
 
@@ -115,10 +116,10 @@ const Auth = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.15 }}
           >
-            <div className="auth-benefit-icon">🚨</div>
+            <div className="auth-benefit-icon text-2xl font-bold text-white" style={{minWidth: '2rem'}}>02</div>
             <div>
-              <h3 className="font-bold text-white mb-1">Emergency Mode</h3>
-              <p className="text-sm text-red-100">Send urgent alerts to donors for critical situations</p>
+              <h3 className="font-semibold text-white mb-1 text-sm">Emergency Response</h3>
+              <p className="text-xs text-red-100">Send urgent alerts for critical situations</p>
             </div>
           </motion.div>
 
@@ -128,10 +129,10 @@ const Auth = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
           >
-            <div className="auth-benefit-icon">🛡️</div>
+            <div className="auth-benefit-icon text-2xl font-bold text-white" style={{minWidth: '2rem'}}>03</div>
             <div>
-              <h3 className="font-bold text-white mb-1">Secure & Private</h3>
-              <p className="text-sm text-red-100">Your health data is encrypted and protected</p>
+              <h3 className="font-semibold text-white mb-1 text-sm">Secure & Private</h3>
+              <p className="text-xs text-red-100">Your health data is encrypted and protected</p>
             </div>
           </motion.div>
 
@@ -141,19 +142,16 @@ const Auth = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.25 }}
           >
-            <div className="auth-benefit-icon">⚡</div>
+            <div className="auth-benefit-icon text-2xl font-bold text-white" style={{minWidth: '2rem'}}>04</div>
             <div>
-              <h3 className="font-bold text-white mb-1">Lightning Fast</h3>
-              <p className="text-sm text-red-100">Connect with donors instantly when you need it most</p>
+              <h3 className="font-semibold text-white mb-1 text-sm">Instant Connection</h3>
+              <p className="text-xs text-red-100">Connect with donors instantly when needed</p>
             </div>
           </motion.div>
         </div>
 
         <div className="mt-12 pt-8 border-t border-red-300/30">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="text-3xl">✨</span>
-            <p className="text-sm text-red-100">Trusted by thousands of lives saved</p>
-          </div>
+          <p className="text-xs text-red-100 uppercase tracking-wide font-medium">Trusted by healthcare professionals</p>
         </div>
       </motion.div>
 
@@ -173,59 +171,20 @@ const Auth = () => {
             transition={{ duration: 0.4, delay: 0.2 }}
           >
             <div className="mb-4 flex items-center gap-3">
-              <div className="auth-icon-badge">🩸</div>
+              <div className="auth-icon-badge" style={{fontSize: '1.5rem', fontWeight: 'bold', color: '#d92d20'}}>●</div>
               <div>
                 <h1 className="text-2xl font-bold text-slate-900">Bloodlink</h1>
-                <p className="text-sm text-slate-500">Every drop matters</p>
+                <p className="text-xs text-slate-400 uppercase tracking-wide">Access Portal</p>
               </div>
             </div>
-            <p className="text-sm leading-6 text-slate-600 mt-2">
+            <p className="text-sm leading-6 text-slate-600 mt-3">
               {mode === "signup"
-                ? "Create an account to start saving lives"
-                : "Sign in to access your account and find donors"}
+                ? "Create your account to join our donor network"
+                : "Access your account to find and connect with donors"}
             </p>
           </motion.div>
 
-          {/* Mode Toggle */}
-          <motion.div
-            className="auth-toggle-enhanced mb-8"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.25 }}
-          >
-            <div className="inline-flex gap-1 p-1.5 bg-slate-100 rounded-2xl">
-              <motion.button
-                type="button"
-                onClick={() => {
-                  setMode("login");
-                  setError("");
-                  setConfirmPassword("");
-                }}
-                className={`auth-toggle-btn ${
-                  mode === "login" ? "auth-toggle-btn-active" : "auth-toggle-btn-inactive"
-                }`}
-                layoutId="auth-toggle-premium"
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              >
-                <span className="text-sm font-semibold">Sign In</span>
-              </motion.button>
-              <motion.button
-                type="button"
-                onClick={() => {
-                  setMode("signup");
-                  setError("");
-                  setConfirmPassword("");
-                }}
-                className={`auth-toggle-btn ${
-                  mode === "signup" ? "auth-toggle-btn-active" : "auth-toggle-btn-inactive"
-                }`}
-                layoutId="auth-toggle-premium-2"
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              >
-                <span className="text-sm font-semibold">Register</span>
-              </motion.button>
-            </div>
-          </motion.div>
+
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -235,14 +194,14 @@ const Auth = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.3 }}
             >
-              <label className="auth-label-premium mb-2.5 block">Username</label>
+              <label className="auth-label-premium mb-2.5 block text-sm font-medium text-slate-700">Username</label>
               <div className="auth-input-wrapper">
-                <span className="auth-input-icon">👤</span>
+                <span className="auth-input-icon" style={{fontSize: '0.95rem', fontWeight: '600', color: '#64748b'}}>●</span>
                 <input
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="auth-input-premium"
-                  placeholder="Enter your username"
+                  placeholder="Your username"
                   required
                 />
               </div>
@@ -254,15 +213,15 @@ const Auth = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.35 }}
             >
-              <label className="auth-label-premium mb-2.5 block">Password</label>
+              <label className="auth-label-premium mb-2.5 block text-sm font-medium text-slate-700">Password</label>
               <div className="auth-input-wrapper">
-                <span className="auth-input-icon">🔒</span>
+                <span className="auth-input-icon" style={{fontSize: '0.95rem', fontWeight: '600', color: '#64748b'}}>●</span>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="auth-input-premium"
-                  placeholder="At least 8 characters"
+                  placeholder="Minimum 8 characters"
                   minLength={8}
                   required
                 />
@@ -279,15 +238,15 @@ const Auth = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.4 }}
               >
-                <label className="auth-label-premium mb-2.5 block">Confirm Password</label>
+                <label className="auth-label-premium mb-2.5 block text-sm font-medium text-slate-700">Confirm Password</label>
                 <div className="auth-input-wrapper">
-                  <span className="auth-input-icon">✓</span>
+                  <span className="auth-input-icon" style={{fontSize: '0.95rem', fontWeight: '600', color: '#64748b'}}>●</span>
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className="auth-input-premium"
-                    placeholder="Re-enter your password"
+                    placeholder="Confirm your password"
                     minLength={8}
                     required
                   />
@@ -303,8 +262,8 @@ const Auth = () => {
                 transition={{ type: "spring", stiffness: 300, damping: 24 }}
                 className="auth-error-banner"
               >
-                <span className="text-lg">⚠️</span>
-                <span>{error}</span>
+                <span className="text-lg font-bold">!</span>
+                <span className="text-sm">{error}</span>
               </motion.div>
             )}
 
@@ -343,10 +302,10 @@ const Auth = () => {
             </div>
 
             {/* Footer Info */}
-            <p className="text-center text-xs text-slate-500">
+            <p className="text-center text-xs text-slate-500 font-medium">
               {mode === "signup"
-                ? "Already have an account? "
-                : "Don't have an account? "}
+                ? "Already a member? "
+                : "New to Bloodlink? "}
               <button
                 type="button"
                 onClick={() => {
@@ -355,7 +314,7 @@ const Auth = () => {
                 }}
                 className="font-semibold text-red-600 hover:text-red-700 transition-colors"
               >
-                {mode === "signup" ? "Sign in here" : "Register here"}
+                {mode === "signup" ? "Sign in" : "Register"}
               </button>
             </p>
           </form>
