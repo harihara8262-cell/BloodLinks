@@ -75,129 +75,136 @@ const Auth = () => {
 
   return (
     <div className="page-3d app-page">
-      <div className="mx-auto w-full max-w-xl">
+      <div className="mx-auto w-full max-w-2xl">
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-          className="surface-3d app-card"
+          transition={{ duration: 0.35, ease: "easeOut" }}
+          className="surface-3d app-card auth-shell"
         >
-          <div className="mb-4 flex items-center gap-3">
-            <img src="/bloodlink-logo.svg?v=4" alt="Bloodlink logo" className="h-12 w-12 rounded-xl bg-red-50 p-1.5" />
-            <div>
-              <h1 className="app-title text-3xl font-bold">{mode === "signup" ? "Bloodlink Sign Up" : "Bloodlink Login"}</h1>
-              <p className="app-subtitle text-sm">
-                {mode === "signup"
-                  ? "Create account with username and password. Existing username can update password here."
-                  : "Login for search and emergency access."}
-              </p>
+          <div className="auth-hero mb-7 overflow-hidden rounded-3xl">
+            <div className="auth-hero-bg" />
+            <div className="relative z-10 flex items-start justify-between gap-5 p-5 sm:p-6">
+              <div>
+                <div className="auth-kicker">{mode === "signup" ? "New member" : "Welcome back"}</div>
+                <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+                  {mode === "signup" ? "Create Account" : "Sign In"}
+                </h1>
+                <p className="mt-3 max-w-lg text-sm leading-6 text-slate-600">
+                  {mode === "signup"
+                    ? "Join Bloodlink to register as a donor or search nearby blood donors during emergencies."
+                    : "Access your account to search for donors or manage your donor profile."}
+                </p>
+              </div>
+              <div className="auth-hero-icon">🩸</div>
             </div>
           </div>
 
-          <div className="mb-5 grid grid-cols-2 gap-2 rounded-lg bg-slate-100 p-1">
-            <button
-              type="button"
-              onClick={() => {
-                setMode("login");
-                setError("");
-                setConfirmPassword("");
-              }}
-              className={`rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
-                mode === "login" ? "bg-white text-slate-900 shadow" : "text-slate-600 hover:bg-slate-200"
-              }`}
+          <div className="auth-mode-toggle mb-7">
+            <div className="flex gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-1">
+              <motion.button
+                type="button"
+                onClick={() => {
+                  setMode("login");
+                  setError("");
+                  setConfirmPassword("");
+                }}
+                className={`auth-mode-btn ${
+                  mode === "login" ? "auth-mode-btn-active" : "auth-mode-btn-inactive"
+                }`}
+                layoutId="auth-toggle"
+                transition={{ type: "spring", stiffness: 280, damping: 20 }}
+              >
+                <span className="text-sm font-semibold">Sign In</span>
+              </motion.button>
+              <motion.button
+                type="button"
+                onClick={() => {
+                  setMode("signup");
+                  setError("");
+                  setConfirmPassword("");
+                }}
+                className={`auth-mode-btn ${
+                  mode === "signup" ? "auth-mode-btn-active" : "auth-mode-btn-inactive"
+                }`}
+                layoutId="auth-toggle-2"
+                transition={{ type: "spring", stiffness: 280, damping: 20 }}
+              >
+                <span className="text-sm font-semibold">Register</span>
+              </motion.button>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="grid gap-5">
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, ease: "easeOut" }}
             >
-              Login
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMode("signup");
-                setError("");
-                setConfirmPassword("");
-              }}
-              className={`rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
-                mode === "signup" ? "bg-white text-slate-900 shadow" : "text-slate-600 hover:bg-slate-200"
-              }`}
-            >
-              Sign Up
-            </button>
-          </div>
-
-          <div className="auth-flow-scene mb-6">
-            <div className="auth-flow-track" />
-            <div className="auth-flow-stream" />
-            <div className="auth-flow-drop" />
-
-            <div className="auth-human auth-human-donor" aria-hidden="true">
-              <div className="auth-human-head" />
-              <div className="auth-human-torso" />
-              <div className="auth-human-arm auth-human-arm-left" />
-              <div className="auth-human-arm auth-human-arm-right" />
-              <div className="auth-human-leg auth-human-leg-left" />
-              <div className="auth-human-leg auth-human-leg-right" />
-            </div>
-
-            <div className="auth-human auth-human-patient" aria-hidden="true">
-              <div className="auth-human-head" />
-              <div className="auth-human-torso" />
-              <div className="auth-human-arm auth-human-arm-left" />
-              <div className="auth-human-arm auth-human-arm-right" />
-              <div className="auth-human-leg auth-human-leg-left" />
-              <div className="auth-human-leg auth-human-leg-right" />
-            </div>
-
-            <span className="auth-flow-label auth-flow-label-donor">DONOR</span>
-            <span className="auth-flow-label auth-flow-label-patient">PATIENT</span>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-700">Username *</label>
+              <label className="auth-label mb-2 block text-sm font-semibold text-slate-700">Username</label>
               <input
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="app-input"
-                placeholder="Enter username"
+                className="app-input auth-input"
+                placeholder="Enter your username"
                 required
               />
-            </div>
+            </motion.div>
 
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-700">Password *</label>
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, delay: 0.05, ease: "easeOut" }}
+            >
+              <label className="auth-label mb-2 block text-sm font-semibold text-slate-700">Password</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="app-input"
-                placeholder="Enter password"
+                className="app-input auth-input"
+                placeholder="At least 8 characters"
                 minLength={8}
                 required
               />
-            </div>
+              <p className="auth-helper mt-1.5 text-xs text-slate-500">Must be at least 8 characters long.</p>
+            </motion.div>
 
             {mode === "signup" && (
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">Confirm Password *</label>
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: 0.1, ease: "easeOut" }}
+              >
+                <label className="auth-label mb-2 block text-sm font-semibold text-slate-700">Confirm Password</label>
                 <input
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="app-input"
-                  placeholder="Re-enter password"
+                  className="app-input auth-input"
+                  placeholder="Re-enter your password"
                   minLength={8}
                   required
                 />
-              </div>
+              </motion.div>
             )}
 
-            {error && <p className="text-sm font-semibold text-red-600">{error}</p>}
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ type: "spring", stiffness: 300, damping: 24 }}
+                className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm font-semibold text-red-700"
+              >
+                {error}
+              </motion.div>
+            )}
 
             <AnimatedButton
               type="submit"
               disabled={loading}
-              className="app-pill-btn w-full rounded-lg bg-red-600 px-4 py-3 font-bold text-white hover:bg-red-700"
+              className="auth-submit-btn mt-2 w-full rounded-xl px-4 py-3 font-bold text-white"
             >
-              {loading ? "Please wait..." : mode === "signup" ? "Register" : "Continue"}
+              {loading ? "Processing..." : mode === "signup" ? "Create Account" : "Sign In"}
             </AnimatedButton>
           </form>
         </motion.div>
