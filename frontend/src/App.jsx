@@ -157,79 +157,128 @@ function AppContent() {
               element={
                 <PageTransition>
                   <ProtectedRoute>
-                    <div className="hero-stage min-h-screen px-4 py-10 sm:py-14">
+                    <div className="home-stage min-h-screen px-4 py-10 sm:py-12">
                       <div className="hero-orb hero-orb-one" />
                       <div className="hero-orb hero-orb-two" />
-                      <div className="mx-auto grid w-full max-w-6xl gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+                      <div className="mx-auto grid w-full max-w-6xl gap-6 lg:gap-8">
                         <motion.div
-                          className="hero-card app-card surface-3d"
+                          className="home-hero surface-3d overflow-hidden rounded-3xl"
                           initial={{ opacity: 0, y: 24 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.5, ease: "easeOut" }}
                         >
-                          <h1 className="hero-title app-title mb-4 text-4xl font-bold sm:text-5xl">
-                            <span className="inline-flex items-center gap-3">
-                              <img src="/bloodlink-logo.svg?v=4" alt="bloodlink" className="h-12 w-12 rounded-xl bg-red-50 p-1.5" />
-                              <span>Bloodlink</span>
-                            </span>
-                          </h1>
-                          <p className="mb-4 text-xl font-semibold text-gray-800 sm:text-2xl">
-                            Smart Nearby Blood Donor Finder
-                          </p>
-                          <p className="app-subtitle mb-8 max-w-xl leading-relaxed">
-                            Connect patients with available blood donors within a 5 km radius using real-time location.
-                            Reliable alerts, faster discovery, and smoother emergency response.
-                          </p>
+                          <div className="home-hero-bg" />
+                          <div className="relative z-10 flex flex-col gap-6 p-6 sm:p-8 md:flex-row md:items-start md:justify-between">
+                            <div className="flex-1">
+                              <div className="home-kicker">Welcome back</div>
+                              <h1 className="mt-3 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
+                                <span className="inline-flex items-center gap-3">
+                                  <img src="/bloodlink-logo.svg?v=4" alt="bloodlink" className="h-12 w-12 rounded-lg bg-red-50 p-1 ring-1 ring-red-100" />
+                                  <span>Bloodlink</span>
+                                </span>
+                              </h1>
+                              <p className="mt-4 text-xl font-semibold text-slate-800 sm:text-2xl">
+                                Smart Nearby Blood Donor Finder
+                              </p>
+                              <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
+                                Connect patients with available blood donors within a 5 km radius using real-time location. Reliable alerts, faster discovery, and smoother emergency response.
+                              </p>
 
-                          <motion.div
-                            className="flex flex-wrap gap-3"
-                            initial="hidden"
-                            animate="show"
-                            variants={{ hidden: {}, show: { transition: { staggerChildren: 0.08 } } }}
-                          >
-                            {canRegisterDonor && !hasRegisteredDonor && (
-                              <motion.div variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }}>
-                                <Link to="/register">
-                                  <AnimatedButton className="app-pill-btn rounded-lg bg-red-600 px-7 py-3 font-bold text-white transition-colors hover:bg-red-700">
-                                    Register as Donor
-                                  </AnimatedButton>
-                                </Link>
+                              <motion.div
+                                className="mt-6 flex flex-wrap gap-3"
+                                initial="hidden"
+                                animate="show"
+                                variants={{ hidden: {}, show: { transition: { staggerChildren: 0.08 } } }}
+                              >
+                                {canRegisterDonor && !hasRegisteredDonor && (
+                                  <motion.div variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }}>
+                                    <Link to="/register">
+                                      <AnimatedButton className="home-btn-register rounded-2xl px-7 py-3 font-bold text-white">
+                                        Register as Donor
+                                      </AnimatedButton>
+                                    </Link>
+                                  </motion.div>
+                                )}
+                                <motion.div variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }}>
+                                  <Link to="/search">
+                                    <AnimatedButton className="home-btn-search rounded-2xl px-7 py-3 font-bold text-white">
+                                      Find Donors
+                                    </AnimatedButton>
+                                  </Link>
+                                </motion.div>
                               </motion.div>
-                            )}
-                            <motion.div variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }}>
-                              <Link to="/search">
-                                <AnimatedButton className="app-pill-btn rounded-lg bg-blue-600 px-7 py-3 font-bold text-white transition-colors hover:bg-blue-700">
-                                  Find Donors
-                                </AnimatedButton>
-                              </Link>
-                            </motion.div>
-                          </motion.div>
+                            </div>
+                            <div className="home-hero-icon text-5xl sm:text-6xl">🩸</div>
+                          </div>
                         </motion.div>
 
                         <motion.div
-                          className="surface-3d app-card grid gap-3"
-                          initial={{ opacity: 0, y: 28 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.52, delay: 0.08, ease: "easeOut" }}
+                          className="grid gap-6 md:grid-cols-3"
+                          initial="hidden"
+                          animate="show"
+                          variants={{
+                            hidden: {},
+                            show: {
+                              transition: { staggerChildren: 0.1, delayChildren: 0.15 },
+                            },
+                          }}
                         >
-                          <div className="app-panel p-4">
-                            <p className="text-xs font-bold uppercase tracking-wider text-red-600">Live Radius</p>
-                            <p className="mt-1 text-3xl font-bold text-gray-900">5 km</p>
-                            <p className="mt-1 text-sm text-gray-600">Default intelligent donor matching zone</p>
-                          </div>
-                          <div className="app-panel p-4">
-                            <p className="text-xs font-bold uppercase tracking-wider text-blue-600">Emergency Expansion</p>
-                            <p className="mt-1 text-3xl font-bold text-gray-900">20 km</p>
-                            <p className="mt-1 text-sm text-gray-600">Auto-expands in emergency mode</p>
-                          </div>
-                          <div className="app-panel p-4">
-                            <p className="text-xs font-bold uppercase tracking-wider text-emerald-600">Workflow</p>
-                            <ol className="mt-2 space-y-1 text-sm text-gray-700">
-                              <li>1. Login</li>
-                              <li>2. Register donor</li>
-                              <li>3. Search or trigger emergency alert</li>
-                            </ol>
-                          </div>
+                          <motion.div
+                            className="home-feature-card surface-3d overflow-hidden rounded-2xl border border-slate-200"
+                            variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
+                            whileHover={{ y: -6 }}
+                            transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                          >
+                            <div className="home-feature-bg" style={{ background: "linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(29, 78, 216, 0.08))" }} />
+                            <div className="relative z-10 p-6">
+                              <div className="home-feature-icon text-3xl">📍</div>
+                              <h3 className="mt-4 text-lg font-bold text-slate-900">Live Radius</h3>
+                              <p className="mt-1 text-3xl font-bold text-blue-600">5 km</p>
+                              <p className="mt-3 text-sm leading-6 text-slate-600">Default intelligent donor matching zone for optimal coverage</p>
+                            </div>
+                          </motion.div>
+
+                          <motion.div
+                            className="home-feature-card surface-3d overflow-hidden rounded-2xl border border-slate-200"
+                            variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
+                            whileHover={{ y: -6 }}
+                            transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                          >
+                            <div className="home-feature-bg" style={{ background: "linear-gradient(135deg, rgba(217, 45, 32, 0.1), rgba(239, 68, 68, 0.08))" }} />
+                            <div className="relative z-10 p-6">
+                              <div className="home-feature-icon text-3xl">🚨</div>
+                              <h3 className="mt-4 text-lg font-bold text-slate-900">Emergency Expansion</h3>
+                              <p className="mt-1 text-3xl font-bold text-red-600">20 km</p>
+                              <p className="mt-3 text-sm leading-6 text-slate-600">Auto-expands in emergency mode to reach more donors</p>
+                            </div>
+                          </motion.div>
+
+                          <motion.div
+                            className="home-feature-card surface-3d overflow-hidden rounded-2xl border border-slate-200"
+                            variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
+                            whileHover={{ y: -6 }}
+                            transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                          >
+                            <div className="home-feature-bg" style={{ background: "linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(22, 163, 74, 0.08))" }} />
+                            <div className="relative z-10 p-6">
+                              <div className="home-feature-icon text-3xl">⚡</div>
+                              <h3 className="mt-4 text-lg font-bold text-slate-900">Quick Workflow</h3>
+                              <ol className="mt-3 space-y-2 text-sm leading-6 text-slate-600">
+                                <li className="flex items-start gap-2">
+                                  <span className="font-bold text-green-600">1.</span>
+                                  <span>Login to your account</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                  <span className="font-bold text-green-600">2.</span>
+                                  <span>Register as a donor</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                  <span className="font-bold text-green-600">3.</span>
+                                  <span>Search or alert</span>
+                                </li>
+                              </ol>
+                            </div>
+                          </motion.div>
                         </motion.div>
                       </div>
                     </div>
