@@ -250,9 +250,6 @@ const Auth = () => {
                   required
                 />
               </div>
-              <p className="auth-input-hint mt-2 text-xs text-slate-500">
-                {username.length <= 8 ? '✗' : '✓'} More than 8 characters • {/[A-Z]/.test(username) ? '✓' : '✗'} Uppercase • {/[a-z]/.test(username) ? '✓' : '✗'} Lowercase • {/\d/.test(username) ? '✓' : '✗'} Number • {/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(username) ? '✓' : '✗'} Special
-              </p>
             </motion.div>
 
             {/* Password Input */}
@@ -274,9 +271,6 @@ const Auth = () => {
                   required
                 />
               </div>
-              <p className="auth-input-hint mt-2 text-xs text-slate-500">
-                {password.length <= 8 ? '✗' : '✓'} More than 8 chars • {/[A-Z]/.test(password) ? '✓' : '✗'} Uppercase • {/[a-z]/.test(password) ? '✓' : '✗'} Lowercase • {/\d/.test(password) ? '✓' : '✗'} Number • {/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) ? '✓' : '✗'} Special
-              </p>
             </motion.div>
 
             {/* Confirm Password Input - Signup Only */}
