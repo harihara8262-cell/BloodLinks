@@ -4,7 +4,31 @@
  */
 
 const getApiBaseUrl = () => {
-  const configured = String(import.meta.env.VITE_API_URL || "").trim();
+  let configured = String(import.meta.env.VITE_API_URL || "").trim();
+
+  if (configured.startsWith("ttps://")) {
+    configured = `h${configured}`;
+  }
+
+  if (configured.includes("YOUR-BACKEND-DOMAIN")) {
+    configured = "";
+  }
+
+  if (configured && !/^https?:\/\//i.test(configured)) {
+    configured = "";
+  }
+
+  if (configured) {
+    try {
+      const parsed = new URL(configured);
+      if (!/^https?:$/i.test(parsed.protocol)) {
+        configured = "";
+      }
+    } catch {
+      configured = "";
+    }
+  }
+
   if (configured) return configured;
 
   const host = typeof window !== "undefined" ? window.location.hostname : "";
@@ -28,7 +52,7 @@ const getBackendUnreachableMessage = () => {
     return `Could not reach backend at ${API_BASE_URL}. Check backend deployment and CORS settings.`;
   }
 
-  return "Backend URL is not configured for this deployment. Set VITE_API_URL in your hosting environment.";
+  return "Backend URL is invalid or not configured for this deployment. Set VITE_API_URL to your deployed backend base URL (for example https://your-backend-domain/api).";
 };
 
 const requestJson = async (url, options = {}, action = "Request") => {
