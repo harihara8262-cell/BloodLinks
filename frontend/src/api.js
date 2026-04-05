@@ -3,21 +3,58 @@
  * Handles all API calls to bloodlink backend
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
+const getApiBaseUrl = () => {
+  const configured = String(import.meta.env.VITE_API_URL || "").trim();
+  if (configured) return configured;
+
+  const host = typeof window !== "undefined" ? window.location.hostname : "";
+  const isLocalHost = host === "localhost" || host === "127.0.0.1";
+  if (isLocalHost) return "http://127.0.0.1:8000/api";
+
+  return "";
+};
+
+const API_BASE_URL = getApiBaseUrl();
+
+const getBackendUnreachableMessage = () => {
+  const host = typeof window !== "undefined" ? window.location.hostname : "";
+  const isLocalHost = host === "localhost" || host === "127.0.0.1";
+
+  if (isLocalHost) {
+    return "Could not reach backend. Start backend on http://127.0.0.1:8000";
+  }
+
+  if (API_BASE_URL) {
+    return `Could not reach backend at ${API_BASE_URL}. Check backend deployment and CORS settings.`;
+  }
+
+  return "Backend URL is not configured for this deployment. Set VITE_API_URL in your hosting environment.";
+};
 
 const requestJson = async (url, options = {}, action = "Request") => {
+  if (!API_BASE_URL) {
+    throw new Error(getBackendUnreachableMessage());
+  }
+
   let response;
   try {
     response = await fetch(url, options);
   } catch (error) {
-    throw new Error("Could not reach backend. Start backend on http://127.0.0.1:8000");
+    throw new Error(getBackendUnreachableMessage());
   }
 
   let payload = null;
+  const contentType = response.headers.get("content-type") || "";
   try {
-    payload = await response.json();
+    if (contentType.includes("application/json")) {
+      payload = await response.json();
+    }
   } catch {
     payload = null;
+  }
+
+  if (response.ok && !contentType.includes("application/json")) {
+    throw new Error(`Unexpected response format for ${action}. Check backend URL and API route configuration.`);
   }
 
   if (!response.ok) {

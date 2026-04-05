@@ -6,6 +6,8 @@ Main FastAPI application entry point
 from dotenv import load_dotenv
 load_dotenv()
 
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import connect_to_mongo, close_mongo_connection
@@ -19,10 +21,25 @@ app = FastAPI(
     version="1.0.0"
 )
 
+default_origins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:3002",
+    "http://localhost:5173",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
+    "http://127.0.0.1:3002",
+    "http://127.0.0.1:5173",
+]
+
+frontend_origins_env = os.getenv("FRONTEND_ORIGINS", "")
+env_origins = [origin.strip() for origin in frontend_origins_env.split(",") if origin.strip()]
+allowed_origins = list(dict.fromkeys(default_origins + env_origins))
+
 # Enable CORS for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:3001", "http://127.0.0.1:3002", "http://127.0.0.1:5173"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
