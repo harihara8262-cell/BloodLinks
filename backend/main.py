@@ -7,13 +7,31 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import os
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from database import connect_to_mongo, close_mongo_connection
+from database import connect_to_supabase, close_supabase_connection
 from routes.donor_routes import router as donor_router
 from routes.email_routes import router as email_router
 from routes.auth_routes import router as auth_router
+
+
+def _get_allowed_origins() -> list[str]:
+    configured = os.getenv("FRONTEND_ORIGINS", "").strip()
+    if configured:
+        origins = [origin.strip() for origin in configured.split(",") if origin.strip()]
+        if origins:
+            return origins
+
+    return [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://localhost:3002",
+        "http://localhost:5173",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+        "http://127.0.0.1:3002",
+        "http://127.0.0.1:5173",
+    ]
 
 app = FastAPI(
     title="BloodConnect API",
@@ -21,25 +39,10 @@ app = FastAPI(
     version="1.0.0"
 )
 
-default_origins = [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://localhost:3002",
-    "http://localhost:5173",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:3001",
-    "http://127.0.0.1:3002",
-    "http://127.0.0.1:5173",
-]
-
-frontend_origins_env = os.getenv("FRONTEND_ORIGINS", "")
-env_origins = [origin.strip() for origin in frontend_origins_env.split(",") if origin.strip()]
-allowed_origins = list(dict.fromkeys(default_origins + env_origins))
-
 # Enable CORS for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=_get_allowed_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -48,11 +51,11 @@ app.add_middleware(
 # Database connection events
 @app.on_event("startup")
 async def startup():
-    await connect_to_mongo()
+    await connect_to_supabase()
 
 @app.on_event("shutdown")
 async def shutdown():
-    await close_mongo_connection()
+    await close_supabase_connection()
 
 # Include routes
 app.include_router(donor_router, prefix="/api/donor", tags=["Donor"])
