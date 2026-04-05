@@ -1,54 +1,43 @@
 """
-MongoDB database connection and utilities
+Supabase database connection and utilities
 """
 
-import motor.motor_asyncio
-from datetime import datetime
 import os
+from supabase import create_client, Client
+from typing import Optional
 
-# MongoDB connection URL (update with your credentials)
-MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017")
-DB_NAME = "bloodconnect"
+# Supabase configuration
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
-client = None
-db = None
+# Global Supabase client
+supabase_client: Optional[Client] = None
 
-async def connect_to_mongo():
-    """Connect to MongoDB"""
-    global client, db
+async def connect_to_supabase():
+    """Initialize Supabase client"""
+    global supabase_client
     try:
-        client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_URL)
-        db = client[DB_NAME]
+        if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
+            raise ValueError("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set in environment variables")
         
-        # Create indexes
-        donors_collection = db["donors"]
-        await donors_collection.create_index("blood_group")
-        await donors_collection.create_index([("location", "2dsphere")])
-
-        users_collection = db["users"]
-        await users_collection.create_index("username", unique=True)
+        supabase_client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
         
-        print("✓ Connected to MongoDB successfully")
+        # Test connection
+        supabase_client.table("donors").select("id").limit(1).execute()
+        
+        print("✓ Connected to Supabase successfully")
     except Exception as e:
-        print(f"✗ Failed to connect to MongoDB: {e}")
+        print(f"✗ Failed to connect to Supabase: {e}")
         raise
 
-async def close_mongo_connection():
-    """Close MongoDB connection"""
-    global client
-    if client:
-        client.close()
-        print("✓ Disconnected from MongoDB")
+async def close_supabase_connection():
+    """Close Supabase connection (cleanup if needed)"""
+    global supabase_client
+    # Supabase client doesn't need explicit closing
+    print("✓ Supabase connection closed")
 
-def get_db():
-    """Get database instance"""
-    return db
-
-async def get_donors_collection():
-    """Get donors collection"""
-    return get_db()["donors"]
-
-
-async def get_users_collection():
-    """Get users collection"""
-    return get_db()["users"]
+def get_supabase() -> Client:
+    """Get Supabase client instance"""
+    if supabase_client is None:
+        raise RuntimeError("Supabase client not initialized. Call connect_to_supabase() first.")
+    return supabase_client

@@ -1,5 +1,5 @@
 """
-Authentication routes for signup and login.
+Authentication routes for signup and login - Supabase version
 """
 
 from datetime import datetime
@@ -10,7 +10,7 @@ import re
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from database import get_users_collection
+from database import get_supabase
 
 router = APIRouter()
 
@@ -33,22 +33,17 @@ def _verify_password(password: str, user: dict) -> bool:
         legacy_plain = user.get("password")
         return isinstance(legacy_plain, str) and legacy_plain == password
 
-    # Current format
+    # Current format - fast path, check this first
     if _hash_password(password, salt) == stored_hash:
         return True
-
-    # Backward compatibility for older hashing strategies.
-    old_pbkdf2 = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("utf-8"), 100000).hex()
-    if old_pbkdf2 == stored_hash:
-        return True
-
-    if hashlib.sha256(password.encode("utf-8")).hexdigest() == stored_hash:
-        return True
-
-    if salt:
-        if hashlib.sha256((salt + password).encode("utf-8")).hexdigest() == stored_hash:
+    
+    # Only attempt backward compatibility if current format fails
+    # and we have old salt/hash data
+    if salt and len(stored_hash) == 64:  # SHA256 hex length
+        # Backward compatibility for older hashing strategies (minimal checks)
+        if hashlib.sha256(password.encode("utf-8")).hexdigest() == stored_hash:
             return True
-        if hashlib.sha256((password + salt).encode("utf-8")).hexdigest() == stored_hash:
+        if hashlib.sha256((salt + password).encode("utf-8")).hexdigest() == stored_hash:
             return True
 
     return False
@@ -64,22 +59,21 @@ async def register(payload: AuthRequest):
     if len(password) < 8:
         raise HTTPException(status_code=400, detail="Password must contain at least 8 characters")
 
-    users = await get_users_collection()
-    existing = await users.find_one({"username": {"$regex": f"^{re.escape(username)}$", "$options": "i"}})
-    if existing:
+    supabase = get_supabase()
+    
+    # Check if user exists (case-sensitive for better performance)
+    existing = supabase.table("users").select("*").eq("username", username).execute()
+    
+    if existing.data:
+        # Update existing user's password
         reset_salt = os.urandom(16).hex()
-        await users.update_one(
-            {"_id": existing["_id"]},
-            {
-                "$set": {
-                    "username": username,
-                    "password_salt": reset_salt,
-                    "password_hash": _hash_password(password, reset_salt),
-                    "updated_at": datetime.utcnow(),
-                },
-                "$unset": {"password": ""},
-            },
-        )
+        supabase.table("users").update({
+            "username": username,
+            "password_salt": reset_salt,
+            "password_hash": _hash_password(password, reset_salt),
+            "updated_at": datetime.utcnow().isoformat(),
+        }).eq("id", existing.data[0]["id"]).execute()
+        
         return {
             "message": "Password updated for existing user",
             "username": username,
@@ -89,18 +83,16 @@ async def register(payload: AuthRequest):
     salt = os.urandom(16).hex()
     password_hash = _hash_password(password, salt)
 
-    result = await users.insert_one(
-        {
-            "username": username,
-            "password_salt": salt,
-            "password_hash": password_hash,
-            "created_at": datetime.utcnow(),
-        }
-    )
+    result = supabase.table("users").insert({
+        "username": username,
+        "password_salt": salt,
+        "password_hash": password_hash,
+        "created_at": datetime.utcnow().isoformat(),
+    }).execute()
 
     return {
         "message": "User registered successfully",
-        "user_id": str(result.inserted_id),
+        "user_id": result.data[0]["id"],
         "username": username,
         "updated": False,
     }
@@ -114,11 +106,13 @@ async def login(payload: AuthRequest):
     if len(password) < 8:
         raise HTTPException(status_code=400, detail="Password must contain at least 8 characters")
 
-    users = await get_users_collection()
-    user = await users.find_one({"username": {"$regex": f"^{re.escape(username)}$", "$options": "i"}})
+    supabase = get_supabase()
+    user_result = supabase.table("users").select("*").ilike("username", username).execute()
 
-    if not user:
+    if not user_result.data:
         raise HTTPException(status_code=401, detail="Invalid username or password")
+    
+    user = user_result.data[0]
 
     if user.get("google_id") and not user.get("password_hash") and not user.get("password"):
         raise HTTPException(status_code=401, detail="This account uses Google login only")
@@ -134,17 +128,11 @@ async def login(payload: AuthRequest):
     current_salt = user.get("password_salt", "")
     if current_hash != _hash_password(password, current_salt):
         new_salt = os.urandom(16).hex()
-        await users.update_one(
-            {"_id": user["_id"]},
-            {
-                "$set": {
-                    "username": username,
-                    "password_salt": new_salt,
-                    "password_hash": _hash_password(password, new_salt),
-                },
-                "$unset": {"password": ""},
-            },
-        )
+        supabase.table("users").update({
+            "username": username,
+            "password_salt": new_salt,
+            "password_hash": _hash_password(password, new_salt),
+        }).eq("id", user["id"]).execute()
 
     return {
         "message": "Login successful",

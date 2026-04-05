@@ -1,32 +1,100 @@
 """
-Donor API routes
+Donor API routes - Supabase version
 """
 
 from fastapi import APIRouter, HTTPException, Query
-from bson import ObjectId
-from database import get_donors_collection
+import socket
+from database import get_supabase
 from models.donor import DonorCreate, DonorResponse, SearchQuery, EmergencyAlertRequest, BLOOD_GROUPS, GENDER_OPTIONS
 from utils.distance import calculate_distance, is_within_radius
 from utils.notifications import send_emergency_sms_to_donors
 from datetime import date, datetime
+from typing import List, Dict, Any
 
 router = APIRouter()
 
 
-async def _collect_matching_donors(blood: str, lat: float, lng: float, radius: float):
-    collection = await get_donors_collection()
-    donors = await collection.find({
-        "blood_group": blood,
-        "available": True
-    }).to_list(length=100)
+def _format_donor(donor: Dict[str, Any], distance: float = None) -> Dict[str, Any]:
+    """Format donor data for response"""
+    formatted = {
+        "id": donor["id"],
+        "name": donor["name"],
+        "phone": donor["phone"],
+        "gender": donor.get("gender"),
+        "date_of_birth": donor.get("date_of_birth"),
+        "blood_group": donor["blood_group"],
+        "address": donor["address"],
+        "city": donor["city"],
+        "latitude": donor["latitude"],
+        "longitude": donor["longitude"],
+        "available": donor["available"],
+        "created_at": donor.get("created_at"),
+    }
+    if distance is not None:
+        formatted["distance"] = distance
+    return formatted
 
-    matches = []
-    for donor in donors:
-        distance = calculate_distance(lat, lng, donor["latitude"], donor["longitude"])
-        if is_within_radius(distance, radius):
-            matches.append(
-                {
-                    "id": str(donor["_id"]),
+
+async def _collect_matching_donors(blood: str, lat: float, lng: float, radius: float):
+    """Find matching donors within radius"""
+    supabase = get_supabase()
+    
+    try:
+        # Try using the PostGIS function first (fastest if available)
+        result = supabase.rpc(
+            'search_nearby_donors',
+            {
+                'p_blood_group': blood,
+                'p_latitude': lat,
+                'p_longitude': lng,
+                'p_radius_km': radius
+            }
+        ).execute()
+        
+        matches = []
+        for donor in result.data:
+            matches.append({
+                "id": donor["id"],
+                "name": donor["name"],
+                "phone": donor["phone"],
+                "gender": donor.get("gender"),
+                "date_of_birth": donor.get("date_of_birth"),
+                "blood_group": donor["blood_group"],
+                "address": donor["address"],
+                "city": donor["city"],
+                "latitude": donor["latitude"],
+                "longitude": donor["longitude"],
+                "available": donor["available"],
+                "distance": donor["distance_km"],
+            })
+        
+        return matches
+    except Exception as e:
+        # If RPC fails, fall back to client-side filtering (slower but works)
+        print(f"⚠️ RPC search failed: {str(e)[:200]}. Falling back to client-side search.")
+        return await _fallback_search_donors(blood, lat, lng, radius)
+
+async def _fallback_search_donors(blood: str, lat: float, lng: float, radius: float):
+    """Fallback donor search using client-side distance calculation"""
+    from utils.distance import calculate_distance
+    
+    supabase = get_supabase()
+    
+    try:
+        # Get all donors with matching blood group and available status
+        result = supabase.table("donors").select(
+            "id, name, phone, gender, date_of_birth, blood_group, address, city, latitude, longitude, available"
+        ).eq("blood_group", blood).eq("available", True).execute()
+        
+        matches = []
+        for donor in result.data:
+            # Calculate distance client-side
+            distance = calculate_distance(lat, lng, donor["latitude"], donor["longitude"])
+            
+            # Only include donors within radius
+            if distance <= radius:
+                matches.append({
+                    "id": donor["id"],
                     "name": donor["name"],
                     "phone": donor["phone"],
                     "gender": donor.get("gender"),
@@ -38,11 +106,18 @@ async def _collect_matching_donors(blood: str, lat: float, lng: float, radius: f
                     "longitude": donor["longitude"],
                     "available": donor["available"],
                     "distance": distance,
-                }
-            )
-
-    matches.sort(key=lambda x: x["distance"])
-    return matches
+                })
+        
+        # Sort by distance
+        matches.sort(key=lambda x: x["distance"])
+        return matches
+    except Exception as e:
+        print(f"✗ Fallback search also failed: {str(e)[:200]}")
+        detail = "Donor search is temporarily unavailable. Please try again."
+        lowered = str(e).lower()
+        if isinstance(e, socket.gaierror) or "getaddrinfo" in lowered or "connecterror" in lowered:
+            detail = "Could not reach database service. Check internet/DNS and try again."
+        raise HTTPException(status_code=503, detail=detail)
 
 @router.post("/register")
 async def register_donor(donor: DonorCreate):
@@ -70,23 +145,30 @@ async def register_donor(donor: DonorCreate):
     if not (-90 <= donor.latitude <= 90) or not (-180 <= donor.longitude <= 180):
         raise HTTPException(status_code=400, detail="Invalid coordinates")
     
-    collection = await get_donors_collection()
+    supabase = get_supabase()
     
     donor_dict = {
-        **donor.dict(),
+        "name": donor.name,
+        "email": donor.email,
+        "phone": donor.phone,
+        "gender": donor.gender,
         "date_of_birth": donor.date_of_birth.isoformat(),
-        "location": {
-            "type": "Point",
-            "coordinates": [donor.longitude, donor.latitude]  # GeoJSON format
-        },
-        "created_at": datetime.utcnow()
+        "blood_group": donor.blood_group,
+        "address": donor.address,
+        "city": donor.city,
+        "latitude": donor.latitude,
+        "longitude": donor.longitude,
+        "available": donor.available,
     }
     
-    result = await collection.insert_one(donor_dict)
+    result = supabase.table("donors").insert(donor_dict).execute()
+    
+    if not result.data:
+        raise HTTPException(status_code=500, detail="Failed to register donor")
     
     return {
         "message": "Donor registered successfully",
-        "donor_id": str(result.inserted_id)
+        "donor_id": result.data[0]["id"]
     }
 
 @router.get("/search")
@@ -113,39 +195,7 @@ async def search_donors(
     if not (-90 <= lat <= 90) or not (-180 <= lng <= 180):
         raise HTTPException(status_code=400, detail="Invalid coordinates")
     
-    collection = await get_donors_collection()
-    
-    # Query for donors with matching blood group and available status
-    donors = await collection.find({
-        "blood_group": blood,
-        "available": True
-    }).to_list(length=100)
-    
-    # Calculate distance and filter by radius
-    results = []
-    for donor in donors:
-        distance = calculate_distance(
-            lat, lng,
-            donor["latitude"], donor["longitude"]
-        )
-        
-        if is_within_radius(distance, radius):
-            donor_data = {
-                "id": str(donor["_id"]),
-                "name": donor["name"],
-                "phone": donor["phone"],
-                "blood_group": donor["blood_group"],
-                "address": donor["address"],
-                "city": donor["city"],
-                "latitude": donor["latitude"],
-                "longitude": donor["longitude"],
-                "available": donor["available"],
-                "distance": distance
-            }
-            results.append(donor_data)
-    
-    # Sort by distance
-    results.sort(key=lambda x: x["distance"])
+    results = await _collect_matching_donors(blood, lat, lng, radius)
     
     return {
         "blood_group": blood,
@@ -161,8 +211,7 @@ async def emergency_search(
     lng: float = Query(..., description="Longitude")
 ):
     """
-    Emergency search - expands radius if no donors found
-    Increases search radius: 5km -> 10km -> 20km
+    Emergency search - returns all donors within 20km sorted by distance
     
     Args:
         blood: Required blood group
@@ -171,26 +220,29 @@ async def emergency_search(
     """
     if blood not in BLOOD_GROUPS:
         raise HTTPException(status_code=400, detail="Invalid blood group")
+
+    if not (-90 <= lat <= 90) or not (-180 <= lng <= 180):
+        raise HTTPException(status_code=400, detail="Invalid coordinates")
     
-    radii = [5, 10, 20]  # Progressive radius expansion
+    # Use single query with max radius instead of loop
+    results = await _collect_matching_donors(blood, lat, lng, 20)
     
-    for radius in radii:
-        results = await _collect_matching_donors(blood, lat, lng, radius)
-        
-        if results:
-            return {
-                "blood_group": blood,
-                "search_radius": radius,
-                "donors_found": len(results),
-                "message": f"No donors in 5km. Expanded search to {radius}km.",
-                "donors": results
-            }
+    # Sort by distance
+    results_sorted = sorted(results, key=lambda x: x.get("distance", float('inf')))
+    
+    # Determine effective radius based on results
+    if results_sorted:
+        max_distance = results_sorted[-1]["distance"] if results_sorted else 20
+        effective_radius = min(max_distance + 1, 20)
+    else:
+        effective_radius = 20
     
     return {
         "blood_group": blood,
-        "donors_found": 0,
-        "message": "No donors found even in 20km radius",
-        "donors": []
+        "search_radius": effective_radius,
+        "donors_found": len(results_sorted),
+        "message": "Donors found" if results_sorted else "No donors found in 20km radius",
+        "donors": results_sorted
     }
 
 
@@ -203,21 +255,17 @@ async def emergency_alert(payload: EmergencyAlertRequest):
     if not (-90 <= payload.latitude <= 90) or not (-180 <= payload.longitude <= 180):
         raise HTTPException(status_code=400, detail="Invalid coordinates")
 
-    radii = [5, 10, 20]
+    # Single query with max radius (much faster than 3 sequential queries)
+    matched_donors = await _collect_matching_donors(
+        payload.blood_group,
+        payload.latitude,
+        payload.longitude,
+        20
+    )
+    
+    # Sort by distance to contact nearest donors first
+    matched_donors = sorted(matched_donors, key=lambda x: x.get("distance", float('inf')))
     selected_radius = 20
-    matched_donors = []
-
-    for radius in radii:
-        results = await _collect_matching_donors(
-            payload.blood_group,
-            payload.latitude,
-            payload.longitude,
-            radius,
-        )
-        if results:
-            matched_donors = results
-            selected_radius = radius
-            break
 
     if not matched_donors:
         return {
@@ -253,13 +301,13 @@ async def emergency_alert(payload: EmergencyAlertRequest):
 @router.get("/all")
 async def get_all_donors():
     """Get all registered donors"""
-    collection = await get_donors_collection()
-    donors = await collection.find().to_list(length=None)
+    supabase = get_supabase()
+    result = supabase.table("donors").select("*").execute()
     
     formatted_donors = []
-    for donor in donors:
+    for donor in result.data:
         formatted_donors.append({
-            "id": str(donor["_id"]),
+            "id": donor["id"],
             "name": donor["name"],
             "phone": donor["phone"],
             "gender": donor.get("gender"),
@@ -270,7 +318,7 @@ async def get_all_donors():
             "latitude": donor["latitude"],
             "longitude": donor["longitude"],
             "available": donor["available"],
-            "created_at": donor["created_at"]
+            "created_at": donor.get("created_at")
         })
     
     return {
@@ -284,18 +332,17 @@ async def update_donor_status(donor_id: str, available: bool):
     Update donor availability status
     
     Args:
-        donor_id: Donor MongoDB ID
+        donor_id: Donor UUID
         available: Availability status
     """
-    collection = await get_donors_collection()
+    supabase = get_supabase()
     
     try:
-        result = await collection.update_one(
-            {"_id": ObjectId(donor_id)},
-            {"$set": {"available": available}}
-        )
+        result = supabase.table("donors").update(
+            {"available": available}
+        ).eq("id", donor_id).execute()
         
-        if result.matched_count == 0:
+        if not result.data:
             raise HTTPException(status_code=404, detail="Donor not found")
         
         return {
@@ -309,16 +356,17 @@ async def update_donor_status(donor_id: str, available: bool):
 @router.get("/donor/{donor_id}")
 async def get_donor(donor_id: str):
     """Get specific donor by ID"""
-    collection = await get_donors_collection()
+    supabase = get_supabase()
     
     try:
-        donor = await collection.find_one({"_id": ObjectId(donor_id)})
+        result = supabase.table("donors").select("*").eq("id", donor_id).execute()
         
-        if not donor:
+        if not result.data:
             raise HTTPException(status_code=404, detail="Donor not found")
         
+        donor = result.data[0]
         return {
-            "id": str(donor["_id"]),
+            "id": donor["id"],
             "name": donor["name"],
             "phone": donor["phone"],
             "blood_group": donor["blood_group"],
@@ -327,7 +375,7 @@ async def get_donor(donor_id: str):
             "latitude": donor["latitude"],
             "longitude": donor["longitude"],
             "available": donor["available"],
-            "created_at": donor["created_at"]
+            "created_at": donor.get("created_at")
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
