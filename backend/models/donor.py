@@ -5,14 +5,14 @@ Donor model and validation schemas
 from datetime import date, datetime
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 
 GENDER_OPTIONS = ["Male", "Female", "Other", "Prefer not to say"]
 
 class DonorBase(BaseModel):
     """Base donor model"""
     name: str
-    email: Optional[EmailStr] = None
+    email: Optional[str] = None
     phone: str
     gender: str
     date_of_birth: date
