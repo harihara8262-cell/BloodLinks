@@ -66,6 +66,31 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem(DONOR_FLAG_KEY, "1");
   };
 
+  const updateDonorState = ({ donorAccess, donorStatus }) => {
+    const canAccessDonor = donorAccess === "enabled";
+    const isDonorRegistered = donorStatus === "registered";
+
+    setCanRegisterDonor(canAccessDonor);
+    setHasRegisteredDonor(isDonorRegistered);
+
+    localStorage.setItem(DONOR_ELIGIBLE_KEY, canAccessDonor ? "1" : "0");
+    localStorage.setItem(DONOR_FLAG_KEY, isDonorRegistered ? "1" : "0");
+  };
+
+  const updateProfile = (updates) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const nextUser = {
+        ...prev,
+        username: updates?.username?.trim() || prev.username,
+        full_name: updates?.full_name?.trim() || prev.full_name,
+        edited_profile: updates?.edited_profile === true ? true : prev.edited_profile || false,
+      };
+      localStorage.setItem(USER_KEY, JSON.stringify(nextUser));
+      return nextUser;
+    });
+  };
+
   const value = useMemo(
     () => ({
       user,
@@ -76,6 +101,8 @@ export const AuthProvider = ({ children }) => {
       signup,
       logout,
       markDonorRegistered,
+      updateDonorState,
+      updateProfile,
     }),
     [user, hasRegisteredDonor, canRegisterDonor]
   );

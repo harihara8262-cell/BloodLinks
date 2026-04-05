@@ -1,9 +1,92 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 
 const Profile = () => {
-  const { user, hasRegisteredDonor, canRegisterDonor } = useAuth();
+  const { user, hasRegisteredDonor, canRegisterDonor, updateProfile, updateDonorState } = useAuth();
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [formSuccess, setFormSuccess] = useState("");
+  const [showCompletedBadge, setShowCompletedBadge] = useState(false);
+  const [draft, setDraft] = useState({
+    username: user?.username || "",
+    full_name: user?.full_name || "",
+    donorAccess: canRegisterDonor ? "enabled" : "restricted",
+    donorStatus: hasRegisteredDonor ? "registered" : "not_registered",
+  });
+
+  const canShowEditButton = !user?.edited_profile;
+
+  useEffect(() => {
+    setDraft({
+      username: user?.username || "",
+      full_name: user?.full_name || "",
+      donorAccess: canRegisterDonor ? "enabled" : "restricted",
+      donorStatus: hasRegisteredDonor ? "registered" : "not_registered",
+    });
+  }, [user, canRegisterDonor, hasRegisteredDonor]);
+
+  useEffect(() => {
+    if (!formSuccess && !showCompletedBadge) return;
+
+    const timeoutId = setTimeout(() => {
+      setFormSuccess("");
+      setShowCompletedBadge(false);
+    }, 60000);
+
+    return () => clearTimeout(timeoutId);
+  }, [formSuccess, showCompletedBadge]);
+
+  const handleDraftChange = (e) => {
+    const { name, value } = e.target;
+    setDraft((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleCancelEdit = () => {
+    setDraft({
+      username: user?.username || "",
+      full_name: user?.full_name || "",
+      donorAccess: canRegisterDonor ? "enabled" : "restricted",
+      donorStatus: hasRegisteredDonor ? "registered" : "not_registered",
+    });
+    setFormError("");
+    setFormSuccess("");
+    setIsEditing(false);
+  };
+
+  const handleSaveProfile = () => {
+    setFormError("");
+    setFormSuccess("");
+
+    if (!draft.username.trim()) {
+      setFormError("Username is required.");
+      return;
+    }
+
+    if (!draft.full_name.trim()) {
+      setFormError("Full name is required.");
+      return;
+    }
+
+    updateProfile({
+      username: draft.username,
+      full_name: draft.full_name,
+      edited_profile: true,
+    });
+
+    updateDonorState({
+      donorAccess: draft.donorAccess,
+      donorStatus: draft.donorStatus,
+    });
+
+    setFormSuccess("Profile details updated successfully.");
+    setShowCompletedBadge(true);
+    setIsEditing(false);
+  };
 
   const accountTypeLabel = user?.auth_mode === "signup" ? "Registered via sign-up" : "Signed in with login";
   const donorAccessLabel = canRegisterDonor ? "Ready to register as donor" : "Donor registration unavailable";
@@ -53,6 +136,109 @@ const Profile = () => {
 
           <div className="grid gap-6 md:grid-cols-[1.1fr_0.9fr]">
             <div className="grid gap-6">
+              <motion.div className="app-panel p-4" whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 260, damping: 22 }}>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="profile-label">Profile Details</p>
+                    <p className="profile-note">If details are missing, edit and save them here.</p>
+                  </div>
+                  {!isEditing && canShowEditButton ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormError("");
+                        setFormSuccess("");
+                        setIsEditing(true);
+                      }}
+                      className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
+                    >
+                      Edit Details
+                    </button>
+                  ) : isEditing ? (
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleCancelEdit}
+                        className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSaveProfile}
+                        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+                      >
+                        Save Changes
+                      </button>
+                    </div>
+                  ) : showCompletedBadge ? (
+                    <span className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Editing Completed
+                    </span>
+                  ) : (
+                    <span className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                      Editing Locked
+                    </span>
+                  )}
+                </div>
+
+                {formError && (
+                  <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{formError}</p>
+                )}
+                {formSuccess && (
+                  <p className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">{formSuccess}</p>
+                )}
+
+                {isEditing && (
+                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="profile-label">Username</label>
+                      <input
+                        name="username"
+                        value={draft.username}
+                        onChange={handleDraftChange}
+                        className="app-input"
+                        placeholder="Enter username"
+                      />
+                    </div>
+                    <div>
+                      <label className="profile-label">Full Name</label>
+                      <input
+                        name="full_name"
+                        value={draft.full_name}
+                        onChange={handleDraftChange}
+                        className="app-input"
+                        placeholder="Enter full name"
+                      />
+                    </div>
+                    <div>
+                      <label className="profile-label">Donor Access</label>
+                      <select
+                        name="donorAccess"
+                        value={draft.donorAccess}
+                        onChange={handleDraftChange}
+                        className="app-select"
+                      >
+                        <option value="enabled">Enabled</option>
+                        <option value="restricted">Restricted</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="profile-label">Donor Status</label>
+                      <select
+                        name="donorStatus"
+                        value={draft.donorStatus}
+                        onChange={handleDraftChange}
+                        className="app-select"
+                      >
+                        <option value="registered">Registered</option>
+                        <option value="not_registered">Not registered</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+
               <div className="profile-metric-grid">
                 <motion.div className="app-panel profile-metric" whileHover={{ y: -3 }} transition={{ type: "spring", stiffness: 280, damping: 20 }}>
                   <p className="profile-label">Username</p>

@@ -25,6 +25,16 @@ function RouteFallback() {
 function Navigation() {
   const { isAuthenticated, logout, hasRegisteredDonor, canRegisterDonor } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const showBackButton = location.pathname !== "/";
+
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+    navigate("/", { replace: true });
+  };
 
   const handleLogout = () => {
     logout();
@@ -39,6 +49,14 @@ function Navigation() {
           <span>Bloodlink</span>
         </Link>
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          {showBackButton && (
+            <button
+              onClick={handleBack}
+              className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
+            >
+              Back
+            </button>
+          )}
           {isAuthenticated ? (
             <>
               <Link
