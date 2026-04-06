@@ -119,6 +119,44 @@ async def _fallback_search_donors(blood: str, lat: float, lng: float, radius: fl
             detail = "Could not reach database service. Check internet/DNS and try again."
         raise HTTPException(status_code=503, detail=detail)
 
+
+async def _collect_all_available_donors(lat: float, lng: float):
+    """Fetch all available donors and sort by distance from requester location."""
+    supabase = get_supabase()
+
+    try:
+        result = supabase.table("donors").select(
+            "id, name, phone, gender, date_of_birth, blood_group, address, city, latitude, longitude, available"
+        ).eq("available", True).execute()
+
+        donors = []
+        for donor in result.data:
+            distance = calculate_distance(lat, lng, donor["latitude"], donor["longitude"])
+            donors.append({
+                "id": donor["id"],
+                "name": donor["name"],
+                "phone": donor["phone"],
+                "gender": donor.get("gender"),
+                "date_of_birth": donor.get("date_of_birth"),
+                "blood_group": donor["blood_group"],
+                "address": donor["address"],
+                "city": donor["city"],
+                "latitude": donor["latitude"],
+                "longitude": donor["longitude"],
+                "available": donor["available"],
+                "distance": distance,
+            })
+
+        donors.sort(key=lambda x: x.get("distance", float("inf")))
+        return donors
+    except Exception as e:
+        print(f"✗ Failed to load available donors: {str(e)[:200]}")
+        detail = "Donor notification is temporarily unavailable. Please try again."
+        lowered = str(e).lower()
+        if isinstance(e, socket.gaierror) or "getaddrinfo" in lowered or "connecterror" in lowered:
+            detail = "Could not reach database service. Check internet/DNS and try again."
+        raise HTTPException(status_code=503, detail=detail)
+
 @router.post("/register")
 async def register_donor(donor: DonorCreate):
     """
@@ -255,24 +293,19 @@ async def emergency_alert(payload: EmergencyAlertRequest):
     if not (-90 <= payload.latitude <= 90) or not (-180 <= payload.longitude <= 180):
         raise HTTPException(status_code=400, detail="Invalid coordinates")
 
-    # Single query with max radius (much faster than 3 sequential queries)
-    matched_donors = await _collect_matching_donors(
-        payload.blood_group,
+    # Notify all currently available registered donors, sorted by distance.
+    matched_donors = await _collect_all_available_donors(
         payload.latitude,
         payload.longitude,
-        20
     )
-    
-    # Sort by distance to contact nearest donors first
-    matched_donors = sorted(matched_donors, key=lambda x: x.get("distance", float('inf')))
-    selected_radius = 20
+    selected_radius = None
 
     if not matched_donors:
         return {
             "status": "no-donors",
-            "message": "No donors found even in 20km radius",
+            "message": "No available registered donors found",
             "blood_group": payload.blood_group,
-            "search_radius": 20,
+            "search_radius": selected_radius,
             "donors_found": 0,
             "notifications_sent": 0,
             "notifications_failed": 0,

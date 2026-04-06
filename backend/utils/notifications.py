@@ -4,6 +4,7 @@ Notification helpers for emergency alerts.
 import re
 import os
 from twilio.rest import Client
+from twilio.base.exceptions import TwilioRestException
 
 
 def _normalize_to_e164(phone: str, default_country_code: str = "+91"):
@@ -50,7 +51,7 @@ def send_emergency_sms_to_donors(donors, blood_group, requester_name, custom_mes
     account_sid = os.getenv("TWILIO_ACCOUNT_SID")
     auth_token = os.getenv("TWILIO_AUTH_TOKEN")
     from_number = os.getenv("TWILIO_FROM_NUMBER")
-    messaging_service_sid = os.getenv("TWILIO_MESSAGING_SERVICE_SID")
+    messaging_service_sid = os.getenv("TWILIO_MESSAGING_SERVICE_SID", "").strip()
     
     if not account_sid or not auth_token:
         return {
@@ -66,6 +67,10 @@ def send_emergency_sms_to_donors(donors, blood_group, requester_name, custom_mes
             ],
         }
     
+    # Check if messaging_service_sid is a placeholder or invalid
+    if messaging_service_sid and (messaging_service_sid.startswith("PASTE_") or messaging_service_sid.startswith("YOUR_")):
+        messaging_service_sid = ""
+    
     if not from_number and not messaging_service_sid:
         return {
             "sent": 0,
@@ -74,7 +79,7 @@ def send_emergency_sms_to_donors(donors, blood_group, requester_name, custom_mes
                 {
                     "donor_id": donor.get("id"),
                     "phone": donor.get("phone"),
-                    "reason": "Missing TWILIO_FROM_NUMBER or TWILIO_MESSAGING_SERVICE_SID configuration",
+                    "reason": "Missing TWILIO_FROM_NUMBER or valid TWILIO_MESSAGING_SERVICE_SID configuration",
                 }
                 for donor in donors
             ],
@@ -114,6 +119,24 @@ def send_emergency_sms_to_donors(donors, blood_group, requester_name, custom_mes
                     to=normalized_phone,
                 )
             sent_count += 1
+        except TwilioRestException as e:
+            error_code = str(getattr(e, "code", "") or "")
+            twilio_message = str(getattr(e, "msg", "") or str(e)).strip()
+
+            if error_code == "21608":
+                reason = "Twilio trial account cannot send SMS to unverified recipient numbers. Verify this number in Twilio or upgrade the account."
+            elif error_code == "21211":
+                reason = "Recipient phone number is invalid for SMS delivery."
+            elif twilio_message:
+                reason = twilio_message
+            else:
+                reason = f"Twilio error ({error_code})" if error_code else "Twilio SMS send failed"
+
+            failed_donors.append({
+                "donor_id": donor.get("id"),
+                "phone": donor.get("phone"),
+                "reason": reason,
+            })
         except Exception as e:
             failed_donors.append({
                 "donor_id": donor.get("id"),

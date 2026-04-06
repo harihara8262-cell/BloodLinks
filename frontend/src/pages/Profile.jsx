@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 
+const profileLockKey = (username) => `bloodlink_profile_locked_${String(username || "").trim().toLowerCase()}`;
+
 const Profile = () => {
   const { user, hasRegisteredDonor, canRegisterDonor, updateProfile, updateDonorState } = useAuth();
 
@@ -9,6 +11,7 @@ const Profile = () => {
   const [formError, setFormError] = useState("");
   const [formSuccess, setFormSuccess] = useState("");
   const [showCompletedBadge, setShowCompletedBadge] = useState(false);
+  const [profileLocked, setProfileLocked] = useState(false);
   const [draft, setDraft] = useState({
     username: user?.username || "",
     full_name: user?.full_name || "",
@@ -16,7 +19,7 @@ const Profile = () => {
     donorStatus: hasRegisteredDonor ? "registered" : "not_registered",
   });
 
-  const canShowEditButton = !user?.edited_profile;
+  const canShowEditButton = !profileLocked && !user?.edited_profile;
 
   useEffect(() => {
     setDraft({
@@ -26,6 +29,11 @@ const Profile = () => {
       donorStatus: hasRegisteredDonor ? "registered" : "not_registered",
     });
   }, [user, canRegisterDonor, hasRegisteredDonor]);
+
+  useEffect(() => {
+    const key = profileLockKey(user?.username);
+    setProfileLocked(localStorage.getItem(key) === "1" || user?.edited_profile === true);
+  }, [user]);
 
   useEffect(() => {
     if (!formSuccess && !showCompletedBadge) return;
@@ -82,6 +90,9 @@ const Profile = () => {
       donorAccess: draft.donorAccess,
       donorStatus: draft.donorStatus,
     });
+
+    localStorage.setItem(profileLockKey(draft.username), "1");
+    setProfileLocked(true);
 
     setFormSuccess("Profile details updated successfully.");
     setShowCompletedBadge(true);
@@ -175,11 +186,7 @@ const Profile = () => {
                     <span className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
                       Editing Completed
                     </span>
-                  ) : (
-                    <span className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                      Editing Locked
-                    </span>
-                  )}
+                  ) : null}
                 </div>
 
                 {formError && (

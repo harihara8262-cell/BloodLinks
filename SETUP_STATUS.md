@@ -115,7 +115,7 @@ taskkill /PID <PID> /F
 **Solution:**
 - Make sure backend is running on port 8000
 - Check browser console for errors (F12)
-- Verify `REACT_APP_API_URL` in frontend/.env
+- Verify `VITE_API_URL` in frontend/.env
 
 ### Issue: "Module not found" errors
 **Solution:**

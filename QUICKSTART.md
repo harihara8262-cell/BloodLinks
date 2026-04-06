@@ -240,18 +240,31 @@ bloodconnect/
 
 ## 📦 Production Deployment
 
-### Heroku (Backend)
+### Vercel Frontend + Backend
+
+Use two Vercel projects from the same GitHub repo:
+
+### 1) Frontend project
 ```bash
-heroku create bloodconnect-api
-heroku config:set MONGO_URL=<your-mongo-atlas-url>
-git push heroku main
+# Project root: frontend/
+# Build command: npm run build
+# Output directory: dist
 ```
 
-### Vercel (Frontend)
+Set this environment variable in the frontend project:
 ```bash
-vercel
-# Follow prompts
-# Set REACT_APP_API_URL env variable
+VITE_API_URL=https://your-backend-project.vercel.app/api
+```
+
+### 2) Backend project
+```bash
+# Project root: backend/
+```
+
+Set these environment variables in the backend project:
+```bash
+MONGO_URL=mongodb+srv://username:password@cluster.mongodb.net/?retryWrites=true&w=majority
+FRONTEND_ORIGINS=https://your-frontend-project.vercel.app
 ```
 
 ---

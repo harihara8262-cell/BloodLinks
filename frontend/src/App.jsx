@@ -43,16 +43,16 @@ function Navigation() {
 
   return (
     <nav className="app-nav app-nav-glow">
-      <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4">
-        <Link to="/" className="flex items-center gap-2 text-2xl font-bold tracking-tight text-slate-900">
+      <div className="app-nav-inner mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4">
+        <Link to="/" className="app-nav-brand flex items-center gap-2 text-2xl font-bold tracking-tight text-slate-900">
           <img src="/bloodlink-logo.svg?v=4" alt="bloodlink" className="h-9 w-9 rounded-lg bg-red-50 p-1" />
           <span>Bloodlink</span>
         </Link>
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+        <div className="app-nav-actions flex flex-wrap items-center gap-2 sm:gap-3">
           {showBackButton && (
             <button
               onClick={handleBack}
-              className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
+              className="app-nav-btn rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
             >
               Back
             </button>
@@ -61,21 +61,21 @@ function Navigation() {
             <>
               <Link
                 to="/profile"
-                className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
+                className="app-nav-btn rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
               >
                 Profile
               </Link>
               {canRegisterDonor && !hasRegisteredDonor && (
                 <Link
                   to="/register"
-                  className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
+                  className="app-nav-btn rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
                 >
                   Register as Donor
                 </Link>
               )}
               <button
                 onClick={handleLogout}
-                className="app-pill-btn rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700"
+                className="app-nav-btn app-pill-btn rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700"
               >
                 Logout
               </button>
@@ -83,7 +83,7 @@ function Navigation() {
           ) : (
             <Link
               to="/auth"
-              className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700"
+              className="app-nav-btn rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700"
             >
               Login
             </Link>
@@ -91,6 +91,94 @@ function Navigation() {
         </div>
       </div>
     </nav>
+  );
+}
+
+function MobileAppNav() {
+  const { isAuthenticated, hasRegisteredDonor, canRegisterDonor } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const isAuthRoute = location.pathname === "/auth";
+  const isRootRoute = location.pathname === "/";
+
+  const tabs = isAuthenticated
+    ? [
+        { to: "/home", label: "Home", icon: "home" },
+        ...(canRegisterDonor && !hasRegisteredDonor ? [{ to: "/register", label: "Register", icon: "register" }] : []),
+        { to: "/search", label: "Search", icon: "search" },
+        { to: "/profile", label: "Profile", icon: "profile" },
+      ]
+    : [
+        { to: "/", label: "Start", icon: "home" },
+        { to: "/auth", label: "Access", icon: "access" },
+      ];
+
+  const TabIcon = ({ name }) => {
+    if (name === "home") {
+      return (
+        <svg viewBox="0 0 24 24" className="mobile-app-tab-icon" aria-hidden="true">
+          <path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4.8a.7.7 0 0 1-.7-.7v-4a1.5 1.5 0 0 0-3 0v4a.7.7 0 0 1-.7.7H5a1 1 0 0 1-1-1v-9.5Z" />
+        </svg>
+      );
+    }
+
+    if (name === "register") {
+      return (
+        <svg viewBox="0 0 24 24" className="mobile-app-tab-icon" aria-hidden="true">
+          <path d="M12 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-3.8 0-7 2-7 4.4V20h8.2a4.8 4.8 0 0 1-.2-1.2V17h-2v-2h2v-2h2v2h2v2h-2v1.8c0 .4.1.8.3 1.2H19v-2.6c0-2.4-3.2-4.4-7-4.4Zm7-2v2h2v2h-2v2h-2v-2h-2v-2h2v-2Z" />
+        </svg>
+      );
+    }
+
+    if (name === "search") {
+      return (
+        <svg viewBox="0 0 24 24" className="mobile-app-tab-icon" aria-hidden="true">
+          <path d="M10.5 4a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13Zm0 2a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9Zm5.8 10.4 3.3 3.3-1.4 1.4-3.3-3.3 1.4-1.4Z" />
+        </svg>
+      );
+    }
+
+    if (name === "access") {
+      return (
+        <svg viewBox="0 0 24 24" className="mobile-app-tab-icon" aria-hidden="true">
+          <path d="M12 2a5 5 0 0 1 5 5v2h1a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h1V7a5 5 0 0 1 5-5Zm3 7V7a3 3 0 0 0-6 0v2h6Zm-3 4a2 2 0 0 1 1 3.7V19h-2v-2.3a2 2 0 0 1 1-3.7Z" />
+        </svg>
+      );
+    }
+
+    return (
+      <svg viewBox="0 0 24 24" className="mobile-app-tab-icon" aria-hidden="true">
+        <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.4 0-8 2.1-8 4.7V22h16v-3.3c0-2.6-3.6-4.7-8-4.7Z" />
+      </svg>
+    );
+  };
+
+  if (!isAuthenticated && !isRootRoute && !isAuthRoute) {
+    return null;
+  }
+
+  return (
+    <div className="mobile-app-nav-wrap content-layer" aria-hidden="false">
+      <nav className="mobile-app-nav" aria-label="Mobile app navigation">
+        {tabs.map((tab) => {
+          const active = location.pathname === tab.to;
+          return (
+            <button
+              key={tab.to}
+              type="button"
+              onClick={() => navigate(tab.to)}
+              className={active ? "mobile-app-tab is-active" : "mobile-app-tab"}
+            >
+              <span className="mobile-app-tab-badge">
+                <TabIcon name={tab.icon} />
+              </span>
+              <span className="mobile-app-tab-label">{tab.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+    </div>
   );
 }
 
@@ -116,7 +204,7 @@ function AppContent() {
       <Navigation />
 
       <div className="content-layer flex-grow">
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="sync" initial={false}>
           <Routes location={location} key={location.pathname}>
             <Route
               path="/"
@@ -124,20 +212,55 @@ function AppContent() {
                 <PageTransition>
                   <div className="starter-stage min-h-screen flex items-center justify-center px-4">
                     <motion.div
-                      className="surface-3d app-card starter-card w-full max-w-xl text-center"
+                      className="surface-3d app-card starter-card w-full max-w-2xl text-center"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.45, ease: "easeOut" }}
+                      transition={{ duration: 0.28, ease: "easeOut" }}
                     >
-                      <div className="blood-drop-wrap mb-5">
+                      <div className="starter-card-bg starter-card-bg-one" aria-hidden="true" />
+                      <div className="starter-card-bg starter-card-bg-two" aria-hidden="true" />
+
+                      <motion.div
+                        className="blood-drop-wrap mb-5"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.26, delay: 0.04, ease: "easeOut" }}
+                      >
                         <div className="blood-drop" aria-hidden="true" />
                         <div className="blood-ripple" aria-hidden="true" />
-                      </div>
-                      <h1 className="app-title mb-2 text-4xl font-bold">Bloodlink</h1>
-                      <p className="app-subtitle mb-6">
+                      </motion.div>
+
+                      <motion.h1
+                        className="app-title starter-title mb-2 text-4xl font-bold sm:text-5xl"
+                        initial={{ opacity: 0, y: 14 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.26, delay: 0.08, ease: "easeOut" }}
+                      >
+                        Bloodlink
+                      </motion.h1>
+
+                      <motion.p
+                        className="app-subtitle mb-6 text-base sm:text-lg"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.26, delay: 0.11, ease: "easeOut" }}
+                      >
                         Every drop matters. Start by signing in to continue.
-                      </p>
-                      <div className="flex items-center justify-center gap-3 flex-wrap">
+                      </motion.p>
+
+                      <motion.div
+                        className="starter-divider"
+                        initial={{ opacity: 0, scaleX: 0.7 }}
+                        animate={{ opacity: 1, scaleX: 1 }}
+                        transition={{ duration: 0.22, delay: 0.13, ease: "easeOut" }}
+                      />
+
+                      <motion.div
+                        className="starter-cta-row flex items-center justify-center gap-3 flex-wrap"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.25, delay: 0.16, ease: "easeOut" }}
+                      >
                         {!isAuthenticated && (
                           <Link to="/auth">
                             <AnimatedButton className="app-pill-btn rounded-lg bg-red-600 px-7 py-3 font-bold text-white transition-colors hover:bg-red-700">
@@ -152,7 +275,7 @@ function AppContent() {
                             </AnimatedButton>
                           </Link>
                         )}
-                      </div>
+                      </motion.div>
                     </motion.div>
                   </div>
                 </PageTransition>
@@ -344,8 +467,10 @@ function AppContent() {
         </AnimatePresence>
       </div>
 
-      <footer className="content-layer bg-gray-800/95 text-gray-300 text-center py-6">
-        <p>(c) 2024 Bloodlink. Connecting lives through blood donation.</p>
+      <MobileAppNav />
+
+      <footer className="app-footer content-layer bg-gray-800/95 text-gray-300 text-center py-6">
+        <p>(c) {new Date().getFullYear()} Bloodlink. Connecting lives through blood donation.</p>
       </footer>
     </div>
   );

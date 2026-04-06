@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useCallback, useEffect, useState } from "react";
+import React, { lazy, Suspense, useCallback, useState } from "react";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import DonorCard from "../components/DonorCard";
 import { searchDonors, emergencySearch, sendEmergencyAlert } from "../api";
@@ -21,9 +21,8 @@ const Search = () => {
   const [selectedDonor, setSelectedDonor] = useState(null);
   const [searchMeta, setSearchMeta] = useState({ donorsFound: 0, radius: 5, mode: "standard" });
 
-  useEffect(() => {
-    handleGetLocation();
-  }, []);
+  // Don't auto-fetch location on mount to avoid UI blocking and permission prompts
+  // Let user explicitly click "Get Location" button for better performance and privacy
 
   const handleGetLocation = useCallback(() => {
     setLoading(true);
@@ -35,8 +34,15 @@ const Search = () => {
       return;
     }
 
+    // Add timeout to prevent geolocation hang
+    const geolocationTimeout = setTimeout(() => {
+      setError("Location request timed out. Check browser permissions or try again.");
+      setLoading(false);
+    }, 10000);
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        clearTimeout(geolocationTimeout);
         setUserLocation({
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
@@ -45,8 +51,15 @@ const Search = () => {
         setLoading(false);
       },
       (error) => {
+        clearTimeout(geolocationTimeout);
         setError(`Error getting location: ${error.message}`);
         setLoading(false);
+      },
+      {
+        // Use cached location if available (faster)
+        maximumAge: 5000,
+        // Timeout if geolocation takes too long
+        timeout: 8000,
       }
     );
   }, []);

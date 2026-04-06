@@ -3,10 +3,8 @@ BloodConnect - Blood Donor Finder Backend
 Main FastAPI application entry point
 """
 
-from dotenv import load_dotenv
-load_dotenv()
-
 import os
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import connect_to_supabase, close_supabase_connection
@@ -15,14 +13,12 @@ from routes.email_routes import router as email_router
 from routes.auth_routes import router as auth_router
 
 
-def _get_allowed_origins() -> list[str]:
-    configured = os.getenv("FRONTEND_ORIGINS", "").strip()
-    if configured:
-        origins = [origin.strip() for origin in configured.split(",") if origin.strip()]
-        if origins:
-            return origins
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(BASE_DIR, ".env"))
 
-    return [
+
+def _get_allowed_origins() -> list[str]:
+    local_defaults = [
         "http://localhost:3000",
         "http://localhost:3001",
         "http://localhost:3002",
@@ -32,6 +28,15 @@ def _get_allowed_origins() -> list[str]:
         "http://127.0.0.1:3002",
         "http://127.0.0.1:5173",
     ]
+
+    configured = os.getenv("FRONTEND_ORIGINS", "").strip()
+    if configured:
+        configured_origins = [origin.strip() for origin in configured.split(",") if origin.strip()]
+        origins = list(dict.fromkeys(local_defaults + configured_origins))
+        if origins:
+            return origins
+
+    return local_defaults
 
 app = FastAPI(
     title="BloodConnect API",
