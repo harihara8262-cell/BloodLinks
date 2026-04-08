@@ -3,10 +3,13 @@
   "installCommand": "cd frontend && npm install",
   "outputDirectory": "frontend/dist",
   "devCommand": "cd frontend && npm run dev",
-  "rewrites": [
+  "routes": [
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "handle": "filesystem"
+    },
+    {
+      "src": "/.*",
+      "dest": "/index.html"
     }
   ]
 }
