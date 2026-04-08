@@ -38,6 +38,15 @@ def _get_allowed_origins() -> list[str]:
 
     return local_defaults
 
+
+def _get_allowed_origin_regex() -> str:
+    configured = os.getenv("FRONTEND_ORIGIN_REGEX", "").strip()
+    if configured:
+        return configured
+
+    # Allow standard hosted frontend domains while keeping localhost allowlist above.
+    return r"^https://([a-zA-Z0-9-]+\.)*(onrender\.com|vercel\.app)$"
+
 app = FastAPI(
     title="BloodConnect API",
     description="Smart Nearby Blood Donor Finder",
@@ -48,6 +57,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_get_allowed_origins(),
+    allow_origin_regex=_get_allowed_origin_regex(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
