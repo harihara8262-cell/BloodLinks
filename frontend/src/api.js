@@ -35,7 +35,7 @@ const getApiBaseUrl = () => {
   const isLocalHost = host === "localhost" || host === "127.0.0.1";
   if (isLocalHost) return "http://127.0.0.1:8000/api";
 
-  return "";
+  return "https://bloodlinks-backend-2.onrender.com/api";
 };
 
 const API_BASE_URL = getApiBaseUrl();
