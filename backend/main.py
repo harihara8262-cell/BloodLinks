@@ -14,7 +14,7 @@ from routes.auth_routes import router as auth_router
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-load_dotenv(os.path.join(BASE_DIR, ".env"))
+load_dotenv(os.path.join(BASE_DIR, ".env"), override=True)
 
 
 def _get_allowed_origins() -> list[str]:

@@ -321,7 +321,7 @@ function AppContent() {
                                 Smart Nearby Blood Donor Finder
                               </p>
                               <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
-                                Connect patients with available blood donors within a 5 km radius using real-time location. Reliable alerts, faster discovery, and smoother emergency response.
+                                Connect patients with available blood donors within a 5 km radius using real-time location. Faster discovery and smoother donor matching.
                               </p>
 
                               <motion.div
@@ -387,9 +387,9 @@ function AppContent() {
                             <div className="home-feature-bg" style={{ background: "linear-gradient(135deg, rgba(217, 45, 32, 0.1), rgba(239, 68, 68, 0.08))" }} />
                             <div className="relative z-10 p-6">
                               <div className="home-feature-icon text-3xl">🚨</div>
-                              <h3 className="mt-4 text-lg font-bold text-slate-900">Emergency Expansion</h3>
+                              <h3 className="mt-4 text-lg font-bold text-slate-900">Expanded Search</h3>
                               <p className="mt-1 text-3xl font-bold text-red-600">20 km</p>
-                              <p className="mt-3 text-sm leading-6 text-slate-600">Auto-expands in emergency mode to reach more donors</p>
+                              <p className="mt-3 text-sm leading-6 text-slate-600">Allows broader donor discovery when the initial radius is too narrow</p>
                             </div>
                           </motion.div>
 
@@ -414,7 +414,7 @@ function AppContent() {
                                 </li>
                                 <li className="flex items-start gap-2">
                                   <span className="font-bold text-green-600">3.</span>
-                                  <span>Search or alert</span>
+                                  <span>Search donors</span>
                                 </li>
                               </ol>
                             </div>

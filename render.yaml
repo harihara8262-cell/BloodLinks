@@ -20,17 +20,6 @@ services:
         sync: false
       - key: SECRET_KEY
         sync: false
-      - key: TWILIO_ACCOUNT_SID
-        sync: false
-      - key: TWILIO_AUTH_TOKEN
-        sync: false
-      - key: TWILIO_FROM_NUMBER
-        sync: false
-      - key: TWILIO_MESSAGING_SERVICE_SID
-        sync: false
-      - key: NOTIFICATION_APP_NAME
-        value: BloodLinks
-
   - type: static
     name: bloodlinks-frontend
     rootDir: frontend

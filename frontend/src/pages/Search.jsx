@@ -1,25 +1,39 @@
 import React, { lazy, Suspense, useCallback, useState } from "react";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import DonorCard from "../components/DonorCard";
-import { searchDonors, emergencySearch, sendEmergencyAlert } from "../api";
+import { searchDonors } from "../api";
 import AnimatedButton from "../components/AnimatedButton";
-import { useAuth } from "../context/AuthContext";
 
 const MapView = lazy(() => import("../components/MapView"));
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
 const Search = () => {
-  const { user } = useAuth();
   const [searchParams, setSearchParams] = useState({ blood_group: "O+", radius: 5 });
   const [userLocation, setUserLocation] = useState(null);
   const [donors, setDonors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [useEmergencyMode, setUseEmergencyMode] = useState(false);
   const [viewMode, setViewMode] = useState("map");
   const [selectedDonor, setSelectedDonor] = useState(null);
-  const [searchMeta, setSearchMeta] = useState({ donorsFound: 0, radius: 5, mode: "standard" });
+  const [searchMeta, setSearchMeta] = useState({ donorsFound: 0, radius: 5 });
+  const searchHighlights = [
+    {
+      label: "Radius",
+      value: `${searchParams.radius} km`,
+      tone: "warm",
+    },
+    {
+      label: "View",
+      value: viewMode === "map" ? "Map first" : "List first",
+      tone: "cool",
+    },
+    {
+      label: "Status",
+      value: userLocation ? "Location ready" : "Waiting for location",
+      tone: userLocation ? "success" : "neutral",
+    },
+  ];
 
   // Don't auto-fetch location on mount to avoid UI blocking and permission prompts
   // Let user explicitly click "Get Location" button for better performance and privacy
@@ -72,7 +86,7 @@ const Search = () => {
     }));
   }, []);
 
-  const executeSearch = async (forceEmergency = useEmergencyMode) => {
+  const executeSearch = async () => {
     if (!userLocation) {
       setError("Please get your location first");
       return false;
@@ -83,29 +97,17 @@ const Search = () => {
     setMessage("");
 
     try {
-      let result;
-
-      if (forceEmergency) {
-        result = await emergencySearch(
-          searchParams.blood_group,
-          userLocation.latitude,
-          userLocation.longitude
-        );
-        setMessage(result.message || "Emergency search activated.");
-      } else {
-        result = await searchDonors(
-          searchParams.blood_group,
-          userLocation.latitude,
-          userLocation.longitude,
-          searchParams.radius
-        );
-      }
+      const result = await searchDonors(
+        searchParams.blood_group,
+        userLocation.latitude,
+        userLocation.longitude,
+        searchParams.radius
+      );
 
       setDonors(result.donors || []);
       setSearchMeta({
         donorsFound: result.donors_found || 0,
         radius: result.search_radius || searchParams.radius,
-        mode: forceEmergency ? "emergency" : "standard",
       });
       if (result.donors && result.donors.length > 0) {
         setSelectedDonor(result.donors[0]);
@@ -114,7 +116,7 @@ const Search = () => {
       }
 
       if (result.donors_found === 0) {
-        setMessage("No matching donors found nearby. Increase the radius or enable Emergency Mode.");
+        setMessage("No matching donors found nearby. Increase the radius and try again.");
       } else {
         setMessage(`Found ${result.donors_found} donor(s) within ${result.search_radius} km.`);
       }
@@ -130,66 +132,6 @@ const Search = () => {
   const handleSearch = async (e) => {
     e.preventDefault();
     await executeSearch();
-  };
-
-  const handleEmergencyFabClick = async () => {
-    if (!userLocation) {
-      handleGetLocation();
-      return;
-    }
-    setUseEmergencyMode(true);
-    setLoading(true);
-    setError("");
-    setMessage("");
-    try {
-      const result = await sendEmergencyAlert({
-        blood_group: searchParams.blood_group,
-        latitude: userLocation.latitude,
-        longitude: userLocation.longitude,
-        requester_name: user?.full_name || user?.username || "A patient",
-      });
-
-      setDonors(result.donors || []);
-      setSearchMeta({
-        donorsFound: result.donors_found || 0,
-        radius: result.search_radius || 20,
-        mode: "emergency",
-      });
-      if (result.donors && result.donors.length > 0) {
-        setSelectedDonor(result.donors[0]);
-      } else {
-        setSelectedDonor(null);
-      }
-
-      if ((result.notifications_sent || 0) > 0) {
-        setMessage("Emergency alert sent successfully.");
-      } else if ((result.donors_found || 0) > 0) {
-        const firstFailure = result.notification_failures?.[0]?.reason;
-        const reasonText = firstFailure ? ` Reason: ${firstFailure}` : "";
-        const missingConfig = (firstFailure || "").toLowerCase().includes("missing twilio config");
-        const invalidNumber = (firstFailure || "").toLowerCase().includes("invalid recipient phone number");
-        const dailyLimitReached =
-          (firstFailure || "").toLowerCase().includes("daily message limit") ||
-          (firstFailure || "").includes("63038");
-
-        let actionText = " Please try again.";
-        if (missingConfig) {
-          actionText = " Configure Twilio credentials in backend/.env and restart backend.";
-        } else if (dailyLimitReached) {
-          actionText = " Twilio daily limit reached. Try again tomorrow or upgrade your Twilio account.";
-        } else if (invalidNumber) {
-          actionText = " Update donor phone numbers to valid mobile format and try again.";
-        }
-
-        setMessage(`Found ${result.donors_found} donor(s), but SMS could not be sent.${reasonText}${actionText}`);
-      } else {
-        setMessage("No donors were found within 20 km. Please retry in a moment.");
-      }
-    } catch (err) {
-      setError(`Emergency alert failed: ${err.message}`);
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleCallDonor = (donor) => {
@@ -263,23 +205,6 @@ const Search = () => {
                 Get Location
               </AnimatedButton>
 
-              <div className="search-emergency-toggle">
-                <button
-                  type="button"
-                  onClick={() => setUseEmergencyMode((prev) => !prev)}
-                  className={useEmergencyMode ? "search-emergency-active" : "search-emergency-inactive"}
-                  aria-pressed={useEmergencyMode}
-                >
-                  {useEmergencyMode ? (
-                    <>
-                      Emergency Mode Active
-                    </>
-                  ) : (
-                    <>Normal Mode</>
-                  )}
-                </button>
-              </div>
-
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
@@ -301,25 +226,10 @@ const Search = () => {
                 <AnimatedButton
                   type="submit"
                   disabled={loading || !userLocation}
-                  className="search-btn-search"
+                  className="search-btn-search col-span-2 w-full"
                 >
                   {loading ? "Searching..." : "Search"}
                 </AnimatedButton>
-
-                <AnimatedButton
-                  type="button"
-                  onClick={handleEmergencyFabClick}
-                  disabled={loading}
-                  className="search-btn-emergency"
-                >
-                  Alert
-                </AnimatedButton>
-              </div>
-
-              <div className="search-tip">
-                <p className="text-xs leading-5">
-                  <span className="font-bold">Tip:</span> Start with normal search. Use Emergency Mode only when required.
-                </p>
               </div>
             </form>
           </div>
@@ -341,9 +251,32 @@ const Search = () => {
             <p className="search-status-text">
               {searchMeta.donorsFound > 0
                 ? `${searchMeta.donorsFound} donor(s) within ${searchMeta.radius} km`
-                : `Current radius: ${searchMeta.radius} km (${searchMeta.mode} mode)`}
+                : `Current radius: ${searchMeta.radius} km`}
             </p>
           </div>
+
+          <motion.div
+            className="search-hero-banner"
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.05, ease: "easeOut" }}
+          >
+            <div className="search-hero-copy">
+              <div className="search-hero-kicker">Precision Search</div>
+              <h2 className="search-hero-title">A cleaner way to find compatible donors.</h2>
+              <p className="search-hero-text">
+                Capture your location once, then switch between map and list views to quickly identify the best matches.
+              </p>
+            </div>
+            <div className="search-hero-stats">
+              {searchHighlights.map((item) => (
+                <div key={item.label} className={`search-hero-stat is-${item.tone}`}>
+                  <span>{item.label}</span>
+                  <strong>{item.value}</strong>
+                </div>
+              ))}
+            </div>
+          </motion.div>
 
           <AnimatePresence>
             {message && (
@@ -503,7 +436,7 @@ const Search = () => {
                   </motion.div>
                   <p className="search-empty-title">No donors found nearby</p>
                   <p className="search-empty-text">
-                    Increase your radius, refresh location, or enable Emergency Mode to reach more donors.
+                    Increase your radius or refresh your location to broaden the search.
                   </p>
                   <motion.button
                     onClick={handleGetLocation}

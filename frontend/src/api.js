@@ -212,46 +212,6 @@ export const searchDonors = async (blood, latitude, longitude, radius = 5) => {
   }
 };
 
-// Emergency Search (expanding radius)
-export const emergencySearch = async (blood, latitude, longitude) => {
-  try {
-    const params = new URLSearchParams({
-      blood,
-      lat: latitude,
-      lng: longitude,
-    });
-    return await requestJson(`${API_BASE_URL}/donor/emergency-search?${params}`, {}, "Emergency search");
-  } catch (error) {
-    console.error("Error in emergency search:", error);
-    throw error;
-  }
-};
-
-export const sendEmergencyAlert = async ({ blood_group, latitude, longitude, message, requester_name }) => {
-  try {
-    return await requestJson(
-      `${API_BASE_URL}/donor/emergency-alert`,
-      {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        blood_group,
-        latitude,
-        longitude,
-        message,
-        requester_name,
-      }),
-      },
-      "Emergency alert"
-    );
-  } catch (error) {
-    console.error("Error sending emergency alert:", error);
-    throw error;
-  }
-};
-
 // Get All Donors
 export const getAllDonors = async () => {
   try {

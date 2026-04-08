@@ -34,7 +34,6 @@ Then open:
 - **FastAPI** 0.109.0 - REST API Framework
 - **Uvicorn** 0.27.0 - ASGI Server
 - **Supabase** 2.3.4 - PostgreSQL Database
-- **Twilio** 8.10.0 - SMS Notifications
 - **Python** 3.8+
 
 ### Frontend
@@ -54,12 +53,10 @@ Then open:
 ## 🎯 Features
 
 ✅ **Smart Donor Discovery** - Find compatible blood donors nearby using GPS  
-✅ **Emergency Alerts** - Broadcast urgent requests to nearby donors via SMS  
 ✅ **User Profiles** - Comprehensive donor and recipient profiles  
 ✅ **Email Verification** - Secure email confirmation system  
 ✅ **Real-time Location** - Live geolocation matching  
 ✅ **Interactive Maps** - Leaflet maps showing donor locations  
-✅ **Notifications** - Twilio SMS integration  
 ✅ **Modern UI** - Responsive design with animations  
 ✅ **Secure Auth** - JWT-based authentication  
 
@@ -85,7 +82,6 @@ GET    /api/donor/nearby                    Find nearby blood donors
 POST   /api/donor/register                  Register as a donor
 GET    /api/donor/{id}                      Get donor details
 PUT    /api/donor/{id}                      Update donor profile
-POST   /api/donor/emergency-alert           Send emergency alert
 ```
 
 ### Authentication
@@ -202,7 +198,6 @@ All required environment variables are in `.env`:
 - `SUPABASE_URL` - Database endpoint
 - `SUPABASE_SERVICE_ROLE_KEY` - Server authentication
 - `SUPABASE_ANON_KEY` - Client authentication
-- `TWILIO_*` - SMS service credentials
 - `SECRET_KEY` - JWT secret
 
 ---

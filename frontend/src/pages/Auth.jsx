@@ -140,7 +140,7 @@ const Auth = () => {
             <div className="auth-benefit-icon text-2xl font-bold text-white" style={{minWidth: '2rem'}}>02</div>
             <div>
               <h3 className="font-semibold text-white mb-1 text-sm">Emergency Response</h3>
-              <p className="text-xs text-red-100">Send urgent alerts for critical situations</p>
+              <p className="text-xs text-red-100">Find matching donors for urgent situations</p>
             </div>
           </motion.div>
 

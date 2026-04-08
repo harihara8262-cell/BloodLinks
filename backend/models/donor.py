@@ -67,13 +67,4 @@ class SearchQuery(BaseModel):
     longitude: float
     radius: float = 5.0  # Default 5 km
 
-
-class EmergencyAlertRequest(BaseModel):
-    """Emergency alert payload"""
-    blood_group: str
-    latitude: float
-    longitude: float
-    message: Optional[str] = None
-    requester_name: Optional[str] = None
-
 BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]

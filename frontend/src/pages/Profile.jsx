@@ -277,7 +277,7 @@ const Profile = () => {
                   <div>
                     <p className="profile-label">Donor Status</p>
                     <p className="profile-value">{donorStatusLabel}</p>
-                    <p className="profile-note">Complete your donor profile to appear in nearby searches and alerts.</p>
+                    <p className="profile-note">Complete your donor profile to appear in nearby searches.</p>
                   </div>
                   <div className={`profile-status-dot profile-status-dot-${donorStatusTone}`} />
                 </div>
